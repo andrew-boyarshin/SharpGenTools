@@ -14,7 +14,7 @@ namespace SharpGen.UnitTests.Parsing
 {
     public abstract class ParsingTestBase : FileSystemTestBase
     {
-        private const string CastXmlExecutablePath = "../../../../CastXML/bin/castxml.exe";
+        private static readonly string CastXmlDirectoryPath = Path.Combine("CastXML", "bin", "castxml.exe");
 
         protected ParsingTestBase(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -48,11 +48,20 @@ namespace SharpGen.UnitTests.Parsing
         {
             var resolver = new IncludeDirectoryResolver(Logger);
             resolver.Configure(config);
+
+            var rootPath = new DirectoryInfo(Environment.CurrentDirectory);
+            while (rootPath != null && !File.Exists(Path.Combine(rootPath.FullName, CastXmlDirectoryPath)))
+                rootPath = rootPath.Parent;
+            
+            if (rootPath == null)
+                throw new InvalidOperationException("CastXML not found");
+
             return new CastXml(
                 Logger,
                 resolver,
-                CastXmlExecutablePath,
-                additionalArguments ?? Array.Empty<string>())
+                Path.Combine(rootPath.FullName, CastXmlDirectoryPath),
+                additionalArguments ?? Array.Empty<string>()
+            )
             {
                 OutputPath = TestDirectory.FullName
             };

@@ -125,10 +125,8 @@ namespace SharpGen.Transform
 
         public void AttachPropertyToParent(CsProperty property)
         {
-            var underlyingMethod = property.Getter ?? property.Setter;
-
             // Associate the property with the underlying method's C++ element.
-            property.CppElement = underlyingMethod.CppElement;
+            property.CppElement = property.Getter?.CppElement ?? property.Setter?.CppElement;
 
             // If We have a getter, then we need to modify the documentation in order to print that we have Gets and Sets.
             if (property.Getter != null && property.Setter != null && !string.IsNullOrEmpty(property.Description))
@@ -136,23 +134,32 @@ namespace SharpGen.Transform
                 property.Description = MatchGet.Replace(property.Description, "$1$2 or sets");
             }
 
-            var parent = underlyingMethod.Parent;
+            var parent = property.Getter?.Parent ?? property.Setter?.Parent;
 
             // If mapping rule disallows properties, don't attach the property to the model.
-            if ((property.Getter?.AllowProperty == false) || (property.Setter?.AllowProperty == false))
+            if (parent is null || (property.Getter?.AllowProperty == false) || (property.Setter?.AllowProperty == false))
                 return;
 
             // Update visibility for getter and setter (set to internal)
             if (property.Getter != null)
             {
-                property.Getter.Visibility = Visibility.Internal;
+                var parentInterface = property.Getter.GetParent<CsInterface>();
+
+                if (!property.Getter.IsPublicVisibilityForced(parentInterface, parentInterface.IBase))
+                    property.Getter.Visibility = Visibility.Internal;
+
                 property.IsPersistent = property.Getter.IsPersistent;
             }
 
             if (property.Setter != null)
-                property.Setter.Visibility = Visibility.Internal;
+            {
+                var parentInterface = property.Setter.GetParent<CsInterface>();
 
-            if (property.Getter != null && property.Name.StartsWith("Is"))
+                if (!property.Setter.IsPublicVisibilityForced(parentInterface, parentInterface.IBase))
+                    property.Setter.Visibility = Visibility.Internal;
+            }
+
+            if (property.Getter != null && property.Name.StartsWith("is", StringComparison.InvariantCultureIgnoreCase))
                 property.Getter.Name += "_";
 
             parent.Add(property);

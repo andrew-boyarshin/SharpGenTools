@@ -1,18 +1,16 @@
 ﻿using SharpGen.Config;
 using SharpGen.CppModel;
 using SharpGen.Transform;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
 
 namespace SharpGen.Model
 {
     [DataContract]
     public abstract class CsCallable : CsBase
     {
-        public override CppElement CppElement
+        public sealed override CppElement CppElement
         {
             get => base.CppElement;
             set
@@ -29,7 +27,6 @@ namespace SharpGen.Model
         [ExcludeFromCodeCoverage(Reason = "Required for XML serialization.")]
         protected CsCallable()
         {
-
         }
 
         protected CsCallable(CppCallable callable)
@@ -38,10 +35,7 @@ namespace SharpGen.Model
         }
 
         private List<CsParameter> _parameters;
-        public List<CsParameter> Parameters
-        {
-            get { return _parameters ?? (_parameters = Items.OfType<CsParameter>().ToList()); }
-        }
+        public List<CsParameter> Parameters => _parameters ??= Items.OfType<CsParameter>().ToList();
 
         public IEnumerable<CsParameter> PublicParameters => Items.OfType<CsParameter>()
             .Where(param => !param.IsUsedAsReturnType && (param.Relations?.Count ?? 0) == 0);
@@ -49,22 +43,15 @@ namespace SharpGen.Model
         [DataMember]
         public string CallingConvention { get; set; }
 
-        private static string GetCallingConvention(CppCallable method)
-        {
-            switch (method.CallingConvention)
+        private static string GetCallingConvention(CppCallable method) =>
+            method.CallingConvention switch
             {
-                case CppCallingConvention.StdCall:
-                    return "StdCall";
-                case CppCallingConvention.CDecl:
-                    return "Cdecl";
-                case CppCallingConvention.ThisCall:
-                    return "ThisCall";
-                case CppCallingConvention.FastCall:
-                    return "FastCall";
-                default:
-                    return "Winapi";
-            }
-        }
+                CppCallingConvention.StdCall => "StdCall",
+                CppCallingConvention.CDecl => "Cdecl",
+                CppCallingConvention.ThisCall => "ThisCall",
+                CppCallingConvention.FastCall => "FastCall",
+                _ => "Winapi"
+            };
 
         public override void FillDocItems(IList<string> docItems, IDocumentationLinker manager)
         {
@@ -86,6 +73,7 @@ namespace SharpGen.Model
                 {
                     return !csStruct.IsNativePrimitive && csStruct.Size > MaxSizeReturnParameter;
                 }
+
                 return false;
             }
         }
@@ -118,25 +106,16 @@ namespace SharpGen.Model
         [DataMember]
         public string CppSignature
         {
-            get
-            {
-                return _cppSignature ?? "Unknown";
-            }
+            get => _cppSignature ?? "Unknown";
             set => _cppSignature = value;
         }
 
-        public override string DocUnmanagedName
-        {
-            get { return CppSignature; }
-        }
+        public override string DocUnmanagedName => CppSignature;
 
         [DataMember]
         public string ShortName { get; set; }
 
-        public override string DocUnmanagedShortName
-        {
-            get => ShortName;
-        }
+        public override string DocUnmanagedShortName => ShortName;
 
         [DataMember]
         public bool CheckReturnType { get; set; }
@@ -153,24 +132,10 @@ namespace SharpGen.Model
         [DataMember]
         public bool SignatureOnly { get; set; }
 
-        public bool HasReturnType
-        {
-            get { return !(ReturnValue.PublicType is CsFundamentalType fundamental && fundamental.Type == typeof(void)); }
-        }
+        public bool HasReturnType =>
+            !(ReturnValue.PublicType is CsFundamentalType fundamental && fundamental.Type == typeof(void));
 
-        public bool HasPublicReturnType
-        {
-            get
-            {
-                foreach (var param in Parameters)
-                {
-                    if (param.IsUsedAsReturnType)
-                        return true;
-                }
-
-                return HasReturnType;
-            }
-        }
+        public bool HasPublicReturnType => HasReturnTypeParameter || HasReturnType;
 
         [DataMember]
         public CsReturnValue ReturnValue { get; set; }
@@ -179,13 +144,8 @@ namespace SharpGen.Model
         /// <summary>
         /// Returns true if a parameter is marked to be used as the return type.
         /// </summary>
-        public bool HasReturnTypeParameter
-        {
-            get
-            {
-                return Parameters.Any(param => param.IsUsedAsReturnType);
-            }
-        }
+        public bool HasReturnTypeParameter =>
+            Parameters.Any(param => param.IsUsedAsReturnType);
 
         /// <summary>
         /// Return the Public return type. If a out parameter is used as a public return type
@@ -195,10 +155,9 @@ namespace SharpGen.Model
         {
             get
             {
-                foreach (var param in Parameters)
+                foreach (var param in Parameters.Where(param => param.IsUsedAsReturnType))
                 {
-                    if (param.IsUsedAsReturnType)
-                        return param.PublicType.QualifiedName;
+                    return param.PublicType.QualifiedName;
                 }
 
                 if (HideReturnType && !ForceReturnType)
@@ -213,13 +172,11 @@ namespace SharpGen.Model
         /// </summary>
         public string GetReturnTypeDoc(IDocumentationLinker linker)
         {
-            foreach (var param in Parameters)
+            foreach (var param in Parameters.Where(param => param.IsUsedAsReturnType))
             {
-                if (param.IsUsedAsReturnType)
-                {
-                    return linker.GetSingleDoc(param);
-                }
+                return linker.GetSingleDoc(param);
             }
+
             return linker.GetSingleDoc(ReturnValue);
         }
 
@@ -230,11 +187,11 @@ namespace SharpGen.Model
         {
             get
             {
-                foreach (var param in Parameters)
+                foreach (var param in Parameters.Where(param => param.IsUsedAsReturnType))
                 {
-                    if (param.IsUsedAsReturnType)
-                        return param.Name;
+                    return param.Name;
                 }
+
                 return ReturnValue.Name;
             }
         }

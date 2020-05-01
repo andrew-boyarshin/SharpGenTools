@@ -2,11 +2,8 @@
 using Microsoft.Build.Utilities;
 using SharpGen.Config;
 using SharpGen.Parser;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Logger = SharpGen.Logging.Logger;
 
 namespace SharpGenTools.Sdk.Tasks
 {
@@ -64,7 +61,7 @@ namespace SharpGenTools.Sdk.Tasks
 
             var module = cppExtensionGenerator.GenerateExtensionHeaders(config, OutputPath, configsWithExtensions, updatedConfigs);
 
-            ReferencedHeaders = macroManager.IncludedFiles.Select(file => new TaskItem(file)).ToArray();
+            ReferencedHeaders = macroManager.IncludedFiles.Select(Utilities.CreateTaskItem).ToArray<ITaskItem>();
 
             if (SharpGenLogger.HasErrors)
             {

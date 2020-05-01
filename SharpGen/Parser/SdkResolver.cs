@@ -38,15 +38,17 @@ namespace SharpGen.Parser
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var vcInstallDir = Path.Combine(GetVSInstallPath(), "VC");
+                var vsInstallDir = GetVSInstallPath();
 
-                if (version == null)
-                {
-                    version
-                        = File.ReadAllText(vcInstallDir + Path.Combine(@"\Auxiliary\Build", "Microsoft.VCToolsVersion.default.txt")).Trim();
-                }
+                version ??= File.ReadAllText(
+                    Path.Combine(vsInstallDir, "VC", "Auxiliary", "Build", "Microsoft.VCToolsVersion.default.txt")
+                );
 
-                yield return new IncludeDirRule(Path.Combine(vcInstallDir, $@"Tools\MSVC\{version}\include"));
+                version = version.Trim();
+
+                yield return new IncludeDirRule(
+                    Path.Combine(vsInstallDir, "VC", "Tools", "MSVC", version, "include")
+                );
             }
             else
             {

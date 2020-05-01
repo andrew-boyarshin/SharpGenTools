@@ -124,9 +124,11 @@ namespace SharpGen.Generator
         }        
         private MethodDeclarationSyntax GenerateShadowCallback(CsCallable csElement, PlatformDetectionType platform, InteropMethodSignature sig)
         {
+            var interopReturnType = ParseTypeName(sig.ReturnType.TypeName);
+
             var methodDecl = MethodDeclaration(
-                ParseTypeName(sig.ReturnType.TypeName),
-                $"{csElement.Name}{GeneratorHelpers.GetPlatformSpecificSuffix(platform)}")
+                interopReturnType,
+                csElement.Name + GeneratorHelpers.GetPlatformSpecificSuffix(platform))
                 .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.PrivateKeyword),
@@ -141,7 +143,7 @@ namespace SharpGen.Generator
                         .WithType(ParseTypeName("System.IntPtr")));
             }
 
-            bool isForcedReturnBufferSig = (sig.Flags & InteropMethodSignatureFlags.ForcedReturnBufferSig) != 0;
+            var isForcedReturnBufferSig = sig.ForcedReturnBufferSig;
             IEnumerable<InteropType> nativeParameters = sig.ParameterTypes;
 
             if (isForcedReturnBufferSig)
@@ -277,9 +279,16 @@ namespace SharpGen.Generator
                 }
             }
 
-            var nativeReturnLocation = returnValueNeedsMarshalling
+            ExpressionSyntax nativeReturnLocation = returnValueNeedsMarshalling
                                 ? IdentifierName(generators.Marshalling.GetMarshalStorageLocationIdentifier(csElement.ReturnValue))
                                 : IdentifierName(csElement.ReturnValue.Name);
+
+            bool doReturnResult = csElement.ReturnValue.PublicType.QualifiedName == globalNamespace.GetTypeName(WellKnownName.Result);
+
+            if (doReturnResult && csElement.HasReturnType && !csElement.HideReturnType && sig.ReturnType.TypeName == "int" && csElement.ReturnValue.UsedAsReturn && !csElement.HasReturnTypeParameter)
+            {
+                nativeReturnLocation = CastExpression(interopReturnType, ParenthesizedExpression(nativeReturnLocation));
+            }
 
             if (csElement.HasReturnType && (!csElement.HideReturnType || csElement.ForceReturnType))
             {
@@ -294,7 +303,7 @@ namespace SharpGen.Generator
             var catchClause = CatchClause()
                 .WithBlock(Block());
 
-            if (csElement.ReturnValue.PublicType.QualifiedName == globalNamespace.GetTypeName(WellKnownName.Result))
+            if (doReturnResult)
             {
                 catchClause = GenerateCatchClause(catchClause, csElement, exceptionVariableIdentifier, ReturnStatement(
                                 MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,

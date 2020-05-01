@@ -71,7 +71,7 @@ namespace SharpGenTools.Sdk.Tasks
             {
                 if (updatedConfigs.Contains(cfg) && cfg.AbsoluteFilePath != null)
                 {
-                    var item = new TaskItem(cfg.AbsoluteFilePath);
+                    var item = Utilities.CreateTaskItem(cfg.AbsoluteFilePath);
                     item.SetMetadata("Id", cfg.Id);
                     updatedConfigFiles.Add(item);
                 }
