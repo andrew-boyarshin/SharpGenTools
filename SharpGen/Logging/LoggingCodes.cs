@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace SharpGen.Logging
@@ -50,10 +51,22 @@ namespace SharpGen.Logging
 
         public const string InvalidPlatformDetectionType = "SG0023";
 
+        public const string ExtensionLoadFailure = "SG0024";
+
+        public const string ExtensibilityInternalError = "SG0025";
+
+        public const string InvalidGlobalNamespaceOverride = "SG0026";
+
+        public const string DocumentationProviderInternalError = "SG0027";
+
         public const string CastXmlError = "CX0001";
 
         public const string CastXmlWarning = "CX0002";
 
         public const string CastXmlFailed = "CX0003";
+
+        // Used by SharpGen MSBuild SDK targets file
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        public const string ExplicitRuntimePackageReference = "SD0001";
     }
 }

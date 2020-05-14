@@ -103,7 +103,7 @@ namespace SharpGen.Generator.Marshallers
             var fixedInitializer = VariableDeclarator(fixedName)
                 .WithInitializer(EqualsValueClause(arrayIdentifier));
             
-            var unsafeName = globalNamespace.GetTypeNameSyntax(BuiltinType.Unsafe);
+            var unsafeName = GlobalNamespaceProvider.GetTypeNameSyntax(BuiltinType.Unsafe);
             
             var sizeOfName = GenericName(
                 Identifier("SizeOf"),

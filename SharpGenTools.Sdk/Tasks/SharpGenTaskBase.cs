@@ -1,59 +1,53 @@
-﻿using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using SharpGen.Config;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+using System.Threading;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 using Logger = SharpGen.Logging.Logger;
 
 namespace SharpGenTools.Sdk.Tasks
 {
     public abstract class SharpGenTaskBase : Task
     {
-        [Required]
-        public ITaskItem[] ConfigFiles { get; set; }
+        // ReSharper disable MemberCanBeProtected.Global, UnusedAutoPropertyAccessor.Global
+        [Required] public string[] CastXmlArguments { get; set; }
+        [Required] public ITaskItem CastXmlExecutable { get; set; }
+        [Required] public ITaskItem[] ConfigFiles { get; set; }
+        [Required] public ITaskItem DocumentationCache { get; set; }
+        [Required] public ITaskItem[] ExtensionAssemblies { get; set; }
+        [Required] public ITaskItem[] ExternalDocumentation { get; set; }
+        [Required] public string GeneratedCodeFolder { get; set; }
+        [Required] public ITaskItem[] GlobalNamespaceOverrides { get; set; }
+        [Required] public ITaskItem InputsCache { get; set; }
+        [Required] public string[] Macros { get; set; }
+        [Required] public string OutputPath { get; set; }
+        [Required] public ITaskItem[] Platforms { get; set; }
+        public ITaskItem ConsumerBindMappingConfig { get; set; }
+        // ReSharper restore UnusedAutoPropertyAccessor.Global, MemberCanBeProtected.Global
 
-        public string[] Macros { get; set; }
+#if DEBUG
+        public bool DebugWaitForDebuggerAttach { get; set; }
+#endif
 
-        protected Logger SharpGenLogger { get; private set; }
+        protected Logger SharpGenLogger { get; set; }
 
-        public override bool Execute()
+        protected void PrepareExecute()
         {
             BindingRedirectResolution.Enable();
 
-            SharpGenLogger = new Logger(new MsBuildSharpGenLogger(Log), null);
+#if DEBUG
+            if (DebugWaitForDebuggerAttach)
+                WaitForDebuggerAttach();
+#endif
 
-            var config = new ConfigFile
-            {
-                Files = ConfigFiles.Select(file => file.ItemSpec).ToList(),
-                Id = "SharpGen-MSBuild"
-            };
-
-            try
-            {
-                config = LoadConfig(config);
-
-                if (SharpGenLogger.HasErrors)
-                {
-                    return false;
-                }
-
-                return Execute(config);
-            }
-            catch (CodeGenFailedException ex)
-            {
-                Log.LogError(ex.Message);
-                return false;
-            }
+            SharpGenLogger = new Logger(new MSBuildSharpGenLogger(Log));
         }
 
-        protected virtual ConfigFile LoadConfig(ConfigFile config)
+        [Conditional("DEBUG")]
+        protected internal static void WaitForDebuggerAttach()
         {
-            config = ConfigFile.Load(config, Macros, SharpGenLogger);
-            return config;
+            while (!Debugger.IsAttached)
+                Thread.Sleep(TimeSpan.FromSeconds(1));
         }
-
-        protected abstract bool Execute(ConfigFile config);
     }
 }

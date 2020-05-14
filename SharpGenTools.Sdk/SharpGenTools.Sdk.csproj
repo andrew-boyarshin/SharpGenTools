@@ -6,43 +6,63 @@
     <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
     <PackageId>SharpGenTools.Sdk</PackageId>
     <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <PackageType>MSBuildSdk</PackageType>
+    <SharpGenSdkPackage>true</SharpGenSdkPackage>
+    <SharpGenBuildAsMSBuildSdk>true</SharpGenBuildAsMSBuildSdk>
+
+    <SdkVersionPropsPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'Sdk.Version.props'))</SdkVersionPropsPath>
+
     <!-- forces SDK to copy dependencies into build output to make packing easier -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <DevelopmentDependency>true</DevelopmentDependency>
     <RuntimeIdentifiers>win;unix</RuntimeIdentifiers>
     <Description>MSBuild tooling for SharpGen and SharpPatch. Tooling for generating efficient C# code from C++ and COM headers.</Description>
-    <SharpGenSdkPackage>true</SharpGenSdkPackage>
     <ExtrasBuildEachRuntimeIdentifier>true</ExtrasBuildEachRuntimeIdentifier>
     <EnsureRuntimePackageDependencies>false</EnsureRuntimePackageDependencies>
     <ExtrasIncludeDefaultProjectBuildOutputInPackTarget>IncludeDefaultProjectBuildOutputInPack</ExtrasIncludeDefaultProjectBuildOutputInPackTarget>
   </PropertyGroup>
 
   <Target Name="IncludeDefaultProjectBuildOutputInPack">
-
     <ItemGroup>
       <None Include="@(RidSpecificOutput->'%(Identity)')" PackagePath="tools/%(TargetFramework)/%(Rid)" Pack="true" />
     </ItemGroup>
-
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Mono.Cecil" />
-    <PackageReference Include="System.Xml.XmlDocument" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
+    <PackageReference Include="Microsoft.Bcl.HashCode" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SharpGen\SharpGen.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
-    <ProjectReference Include="..\SharpPatch\SharpPatch.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\SharpGen.Platform\SharpGen.Platform.csproj" />
+    <ProjectReference Include="..\SharpPatch\SharpPatch.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SdkVersionProps Include="$(SdkVersionPropsPath)" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="../CastXML/**/*" PackagePath="tools/CastXML/%(RecursiveDir)%(FileName)%(Extension)" />
+    <Content Include="GetSnPath.*.props" PackagePath="Sdk" />
     <Content Include="SharpGenMapping.xaml" PackagePath="build" />
+    <Content Include="@(SdkVersionProps)" PackagePath="Sdk" />
+    <Content Include="Sdk.props" PackagePath="Sdk" />
+    <Content Include="Sdk.targets" PackagePath="Sdk" />
   </ItemGroup>
+
+  <Target Name="SharpGenWriteVersionProps" BeforeTargets="_GetPackageFiles;GenerateNuspec" Outputs="@(SdkVersionProps)">
+    <ItemGroup>
+      <_VersionPropsLine Include="&lt;Project&gt;" />
+      <_VersionPropsLine Include="&lt;PropertyGroup&gt;" />
+      <_VersionPropsLine Include="&lt;SharpGenSdkVersion Condition=&quot;'%24(SharpGenSdkVersion)'==''&quot;&gt;$(PackageVersion)&lt;/SharpGenSdkVersion&gt;" />
+      <_VersionPropsLine Include="&lt;/PropertyGroup&gt;" />
+      <_VersionPropsLine Include="&lt;/Project&gt;" />
+    </ItemGroup>
+    <WriteLinesToFile File="@(SdkVersionProps)" WriteOnlyWhenDifferent="true" Overwrite="true" Lines="@(_VersionPropsLine)" />
+  </Target>
 
 </Project>

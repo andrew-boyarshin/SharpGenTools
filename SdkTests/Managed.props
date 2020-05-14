@@ -6,24 +6,19 @@
         <RestoreNoCache>true</RestoreNoCache>
         <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)LocalPackages</RestoreAdditionalProjectSources>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LocalPackageVersion Condition="'$(APPVEYOR_REPO_TAG_NAME)' == ''">$(VersionPrefix)-$(VersionSuffix)</LocalPackageVersion> 
-        <LocalPackageVersion Condition="'$(APPVEYOR_REPO_TAG_NAME)' != ''">$(APPVEYOR_REPO_TAG_NAME)</LocalPackageVersion> 
         <SdkTestNative>$(MSBuildProjectName)</SdkTestNative>
+        <SharpGenWaitForDebuggerAttach>false</SharpGenWaitForDebuggerAttach>
     </PropertyGroup>
-    
+
+    <!-- https://github.com/microsoft/msbuild/issues/5349 -->
+    <Import Project="Sdk.props" Sdk="SharpGenTools.Sdk" Version="42.42.42" />
+
     <ItemGroup>
-        <ProjectReference Include="$(MSBuildThisFileDirectory)../SharpGen.Runtime/SharpGen.Runtime.csproj" />
-
-        <PackageReference Include="SharpGenTools.Sdk" VersionOverride="$(LocalPackageVersion)">
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-
         <PackageReference Include="coverlet.msbuild" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="xunit" />
         <PackageReference Include="xunit.runner.visualstudio" />
 
-        <SharpGenConsumerMapping Include="$(MSBuildThisFileDirectory)../SharpGen.Runtime/Mapping.xml" />
         <SharpGenMapping Include="Mapping.xml" />
     </ItemGroup>
 </Project>

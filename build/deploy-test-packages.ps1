@@ -5,7 +5,7 @@ Param(
 
 $localPackagesFolder = "SdkTests/LocalPackages"
 $restorePackagesFolder = "SdkTests/RestoredPackages"
-$sdkPackages = "SharpGenTools.Sdk", "SharpGen.Runtime"
+$sdkPackages = "SharpGenTools.Sdk", "SharpGen.Runtime", "SharpGen.Extension.MicrosoftDocs"
 
 if (!(Test-Path -Path $localPackagesFolder)) {
     mkdir $localPackagesFolder

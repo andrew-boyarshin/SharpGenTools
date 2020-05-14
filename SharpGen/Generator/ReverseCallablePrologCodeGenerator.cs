@@ -114,7 +114,7 @@ namespace SharpGen.Generator
             ExpressionSyntax refToNativeExpression = InvocationExpression(
                 MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    globalNamespace.GetTypeNameSyntax(BuiltinType.Unsafe),
+                    GlobalNamespaceProvider.GetTypeNameSyntax(BuiltinType.Unsafe),
                     GenericName(Identifier("AsRef"))
                     .WithTypeArgumentList(
                         TypeArgumentList(

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
-using SharpGen.Model;
+﻿using System.Collections.Generic;
 
 namespace SharpGen.Transform
 {
@@ -24,7 +18,7 @@ namespace SharpGen.Transform
         /// <returns>Name of the C# type</returns>
         public string FindDocName(string cppName)
         {
-            return _docToCSharp.TryGetValue(cppName, out string cSharpName) ? cSharpName : null;
+            return _docToCSharp.TryGetValue(cppName, out var cSharpName) ? cSharpName : null;
         }
 
         public IEnumerable<(string cppName, string cSharpName)> GetAllDocLinks()

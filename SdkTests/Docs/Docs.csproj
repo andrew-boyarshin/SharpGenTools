@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <SdkTestNative />
+    </PropertyGroup>
+
+    <ItemGroup>
+        <SharpGenExtensionPackage Include="SharpGen.Extension.MicrosoftDocs" Version="$(LocalPackageVersion)" />
+        <PackageReference Include="SharpGen.Runtime.COM" VersionOverride="1.2.0" />
+    </ItemGroup>
+
+</Project>

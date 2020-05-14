@@ -1,13 +1,16 @@
 <Project>
-  <ItemGroup>
+  <ItemGroup Condition="'$(SharpGenBuildAsMSBuildSdk)' != 'true'">
     <Content Include="**/*.props" Exclude="obj/**" PackagePath="build;buildMultiTargeting" />
     <Content Include="**/*.targets" Exclude="obj/**" PackagePath="build;buildMultiTargeting" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <PackageReference Update="*">
-        <PrivateAssets>all</PrivateAssets>
+    <PackageReference Update="@(PackageReference)">
+      <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <ProjectReference Update="@(ProjectReference)">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
@@ -28,7 +31,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="PackDummyLibFile" BeforeTargets="GenerateNuspec">
+  <Target Name="PackDummyLibFile" BeforeTargets="GenerateNuspec" Condition="'$(SharpGenBuildAsMSBuildSdk)' != 'true'">
     <Touch Files="$(BaseIntermediateOutputPath)$(Configuration)/_._" AlwaysCreate="true" />
 
     <ItemGroup>

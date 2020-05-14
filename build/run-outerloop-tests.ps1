@@ -3,7 +3,7 @@ Param(
     [string] $RepoRoot
 )
 
-$managedTests = "Interface", "Struct", "Functions"
+$managedTests = "Interface", "Struct", "Functions", "Docs"
 
 foreach ($test in $managedTests) {
     if (!(./build/Run-UnitTest -Project $test -Configuration "Debug" -CollectCoverage $RunCodeCoverage -RepoRoot $RepoRoot -TestSubdirectory "SdkTests")) {

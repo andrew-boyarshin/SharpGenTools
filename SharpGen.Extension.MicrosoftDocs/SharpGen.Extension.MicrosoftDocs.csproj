@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Microsoft.Build.CentralPackageVersions" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!-- forces SDK to copy dependencies into build output to make packing easier -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+    <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <Description>Microsoft Docs Provider for SharpGenTools.Sdk</Description>
+    <SharpGenSdkPackage>true</SharpGenSdkPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AngleSharp" />
+    <PackageReference Include="AngleSharp.Js" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="System.Net.Http" />
+    <PackageReference Include="System.Memory" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SharpGen\SharpGen.csproj" />
+  </ItemGroup>
+
+</Project>

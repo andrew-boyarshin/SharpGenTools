@@ -4,10 +4,8 @@ using SharpGen.Parser;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using Xunit;
+using SharpGen.Platform;
 using Xunit.Abstractions;
 
 namespace SharpGen.UnitTests.Parsing
@@ -44,7 +42,7 @@ namespace SharpGen.UnitTests.Parsing
             };
         }
 
-        protected CastXml GetCastXml(ConfigFile config, string[] additionalArguments = null)
+        protected CastXmlRunner GetCastXml(ConfigFile config, string[] additionalArguments = null)
         {
             var resolver = new IncludeDirectoryResolver(Logger);
             resolver.Configure(config);
@@ -56,12 +54,9 @@ namespace SharpGen.UnitTests.Parsing
             if (rootPath == null)
                 throw new InvalidOperationException("CastXML not found");
 
-            return new CastXml(
-                Logger,
-                resolver,
-                Path.Combine(rootPath.FullName, CastXmlDirectoryPath),
-                additionalArguments ?? Array.Empty<string>()
-            )
+            return new CastXmlRunner(Logger, resolver,
+                                     Path.Combine(rootPath.FullName, CastXmlDirectoryPath),
+                                     additionalArguments ?? Array.Empty<string>())
             {
                 OutputPath = TestDirectory.FullName
             };
@@ -71,36 +66,31 @@ namespace SharpGen.UnitTests.Parsing
         {
             var loaded = ConfigFile.Load(config, new string[0], Logger);
 
-            var (filesWithIncludes, filesWithExtensionHeaders) = loaded.GetFilesWithIncludesAndExtensionHeaders();
+            loaded.GetFilesWithIncludesAndExtensionHeaders(out var configsWithIncludes,
+                                                           out var configsWithExtensionHeaders);
 
-            var configsWithIncludes = new HashSet<ConfigFile>();
+            var cppHeaderGenerator = new CppHeaderGenerator(Logger, TestDirectory.FullName);
 
-            foreach (var cfg in loaded.ConfigFilesLoaded)
-            {
-                if (filesWithIncludes.Contains(cfg.Id))
-                {
-                    configsWithIncludes.Add(cfg);
-                }
-            }
-
-            var cppHeaderGenerator = new CppHeaderGenerator(Logger, true, TestDirectory.FullName);
-
-            var (updated, _) = cppHeaderGenerator.GenerateCppHeaders(loaded, configsWithIncludes, filesWithExtensionHeaders);
+            var updated = cppHeaderGenerator
+                         .GenerateCppHeaders(loaded, configsWithIncludes, configsWithExtensionHeaders)
+                         .UpdatedConfigs;
 
             var castXml = GetCastXml(loaded);
 
             var extensionGenerator = new CppExtensionHeaderGenerator(new MacroManager(castXml));
 
-            var skeleton = extensionGenerator.GenerateExtensionHeaders(loaded, TestDirectory.FullName, filesWithExtensionHeaders, updated);
+            var skeleton = extensionGenerator.GenerateExtensionHeaders(
+                loaded, TestDirectory.FullName, configsWithExtensionHeaders, updated
+            );
 
-            var parser = new CppParser(Logger, castXml)
+            var parser = new CppParser(Logger, loaded)
             {
                 OutputPath = TestDirectory.FullName
             };
 
-            parser.Initialize(loaded);
+            using var xmlReader = castXml.Process(parser.RootConfigHeaderFileName);
 
-            return parser.Run(skeleton);
+            return parser.Run(skeleton, xmlReader);
         }
     }
 }

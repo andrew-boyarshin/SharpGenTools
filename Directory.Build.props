@@ -1,11 +1,26 @@
 <Project>
 
-  <PropertyGroup>
-    <VersionPrefix Condition="'$(ReleaseTag)' != ''">$(ReleaseTag)</VersionPrefix>
-    <VersionPrefix Condition="'$(VersionPrefix)' == ''">2.0.0</VersionPrefix>
-    <VersionSuffix Condition="'$(ContinuousIntegrationBuild)' != 'true'">local</VersionSuffix>
-    <VersionSuffix Condition="'$(ContinuousIntegrationBuild)' == 'true' AND '$(ReleaseTag)' == ''">ci.$(BuildNumber)</VersionSuffix>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(ContinuousIntegrationBuild)' != 'true'">
+      <PropertyGroup>
+        <Version>42.42.42-local</Version>
+        <PackageVersion>42.42.42</PackageVersion>
+        <FileVersion>42.42.42.42424</FileVersion>
+        <AssemblyVersion>42.42.42.42</AssemblyVersion>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(ReleaseTag)' != '' and '$(Configuration)' == 'Release'">
+      <PropertyGroup>
+        <Version>$(ReleaseTag)</Version>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <Version>2.0.0-ci.$(BuildNumber)</Version>
+        <PackageVersion>42.42.42</PackageVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
     <LangVersion>8</LangVersion>

@@ -10,5 +10,7 @@
     <Message Text="Copied Native Test Dependencies" />
   </Target>
 
+  <!-- https://github.com/microsoft/msbuild/issues/5349 -->
+  <Import Project="Sdk.targets" Sdk="SharpGenTools.Sdk" Version="42.42.42" Condition="'$(MSBuildProjectExtension)' == '.csproj'" />
   <Import Project="Sdk.targets" Sdk="Microsoft.Build.CentralPackageVersions" Condition="'$(MSBuildProjectExtension)' == '.csproj'" />
 </Project>

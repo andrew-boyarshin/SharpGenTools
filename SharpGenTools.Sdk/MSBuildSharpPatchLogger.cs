@@ -3,7 +3,7 @@ using SharpPatch;
 
 namespace SharpGenTools.Sdk
 {
-    class MSBuildSharpPatchLogger : ILogger
+    internal class MSBuildSharpPatchLogger : ILogger
     {
         private readonly TaskLoggingHelper log;
 

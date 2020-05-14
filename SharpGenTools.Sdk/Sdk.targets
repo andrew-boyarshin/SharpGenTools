@@ -1,0 +1,360 @@
+﻿<Project>
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildToolsVersion)' != 'Current'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="'$(SharpGenIntermediateDir)' == ''">
+      <Choose>
+        <When Condition="$([System.IO.Path]::IsPathRooted('$(IntermediateOutputPath)'))">
+          <PropertyGroup>
+            <SharpGenIntermediateDir>$([MSBuild]::NormalizeDirectory('$(IntermediateOutputPath)', 'SharpGen'))</SharpGenIntermediateDir>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <PropertyGroup>
+            <SharpGenIntermediateDir>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(IntermediateOutputPath)', 'SharpGen'))</SharpGenIntermediateDir>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+    <When Condition="!$([System.IO.Path]::IsPathRooted('$(SharpGenIntermediateDir)'))">
+      <PropertyGroup>
+        <SharpGenIntermediateDir>$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(SharpGenIntermediateDir)'))</SharpGenIntermediateDir>
+      </PropertyGroup>
+    </When>
+    <When Condition="!HasTrailingSlash('$(SharpGenIntermediateDir)')">
+      <PropertyGroup>
+        <SharpGenIntermediateDir>$([MSBuild]::EnsureTrailingSlash('$(SharpGenIntermediateDir)'))</SharpGenIntermediateDir>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <PropertyGroup>
+    <SharpGenGeneratedCodeFolder Condition="'$(SharpGenGeneratedCodeFolder)' == ''">$([MSBuild]::NormalizeDirectory('$(SharpGenIntermediateDir)', 'Generated'))</SharpGenGeneratedCodeFolder>
+    <SharpGenConsumerBindMappingConfigId Condition="'$(SharpGenConsumerBindMappingConfigId)' == ''">$(AssemblyName)</SharpGenConsumerBindMappingConfigId>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="$([MSBuild]::IsOsUnixLike())">
+      <PropertyGroup>
+        <SnParam>-R</SnParam>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(SharpGenSdkAssemblyRuntimeIdentifier)' == ''">
+        <SharpGenSdkAssemblyRuntimeIdentifier>unix</SharpGenSdkAssemblyRuntimeIdentifier>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SnParam>-Ra</SnParam>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(CastXmlPath)' == ''">
+        <CastXmlPath>$([System.IO.Path]::Combine('$(SharpGenSdkToolsDirectory)', 'CastXML', 'bin', 'castxml.exe'))</CastXmlPath>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(SharpGenSdkAssemblyRuntimeIdentifier)' == ''">
+        <SharpGenSdkAssemblyRuntimeIdentifier>win</SharpGenSdkAssemblyRuntimeIdentifier>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <PropertyGroup Condition="'$(SharpGenSdkAssemblyFrameworkIdentifier)' == ''">
+    <SharpGenSdkAssemblyFrameworkIdentifier Condition="'$(MSBuildRuntimeType)' == 'Core'">netcoreapp2.1</SharpGenSdkAssemblyFrameworkIdentifier>
+    <SharpGenSdkAssemblyFrameworkIdentifier Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</SharpGenSdkAssemblyFrameworkIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'@(SharpGenSdkAssembly)' == ''">
+    <SharpGenSdkAssembly Include="$([System.IO.Path]::Combine('$(SharpGenSdkToolsDirectory)', '$(SharpGenSdkAssemblyFrameworkIdentifier)', '$(SharpGenSdkAssemblyRuntimeIdentifier)', 'SharpGenTools.Sdk.dll'))" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'@(SharpGenCastXml)' == ''">
+    <SharpGenCastXml Include="$(CastXmlPath)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SharpGenPropertyCache Include="$(SharpGenIntermediateDir)PropertyCache.bin" />
+    <SharpGenInputsCache Include="$(SharpGenIntermediateDir)InputsCache.txt" />
+    <SharpGenDocumentationCache Include="$(SharpGenIntermediateDir)DocumentationCache.json" />
+
+    <GeneratedCSharpFiles Include="$(SharpGenGeneratedCodeFolder)Enumerations.cs" />
+    <GeneratedCSharpFiles Include="$(SharpGenGeneratedCodeFolder)Functions.cs" />
+    <GeneratedCSharpFiles Include="$(SharpGenGeneratedCodeFolder)Interfaces.cs" />
+    <GeneratedCSharpFiles Include="$(SharpGenGeneratedCodeFolder)LocalInterop.cs" />
+    <GeneratedCSharpFiles Include="$(SharpGenGeneratedCodeFolder)Structures.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(CastXmlMSVCCompat)' != 'false'">
+    <CastXmlArg Include="-fmsc-version=1900" />
+    <CastXmlArg Include="-fms-extensions" />
+    <CastXmlArg Include="-fms-compatibility" />
+    <CastXmlArg Include="-Wno-microsoft-enum-value" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <CastXmlArg Include="-std=$(CppStandard)" />
+  </ItemGroup>
+
+  <UsingTask AssemblyFile="@(SharpGenSdkAssembly)" TaskName="SharpPatchTask" />
+  <UsingTask AssemblyFile="@(SharpGenSdkAssembly)" TaskName="SharpGenTask" />
+  <UsingTask AssemblyFile="@(SharpGenSdkAssembly)" TaskName="SharpPropertyCacheTask" />
+
+  <Target Name="GetMappingsFromProjectReferences" DependsOnTargets="PrepareProjectReferences">
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             Targets="GenerateConsumerBindMappingFile"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform);"
+             SkipNonexistentTargets="true"
+             ContinueOnError="$(ContinueOnError)"
+             RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+      <Output TaskParameter="TargetOutputs" ItemName="SharpGenConsumerMapping" />
+    </MSBuild>
+  </Target>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);GenerateConsumerBindMappingFile;GenerateTfmSpecificConsumerProps</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(SharpGenGenerateConsumerBindMapping)' == 'true' and '@(SharpGenMapping)' != ''">
+    <TfmConsumerProps Include="$(SharpGenIntermediateDir)$(PackageId).props">
+      <PackagePath>build/$(TargetFramework);buildMultiTargeting/$(TargetFramework)</PackagePath>
+      <Pack>true</Pack>
+    </TfmConsumerProps>
+    <SharpGenConsumerBindMappingFile Include="$(SharpGenIntermediateDir)$(SharpGenConsumerBindMappingConfigId).BindMapping.xml">
+      <PackagePath>build/$(TargetFramework);buildMultiTargeting/$(TargetFramework)</PackagePath>
+      <Pack>true</Pack>
+    </SharpGenConsumerBindMappingFile>
+    <TfmSpecificPackageFile Include="@(TfmConsumerProps);@(SharpGenConsumerBindMappingFile)" />
+  </ItemGroup>
+
+  <!-- The up-to-date check for this target will always yield FullBuild result since it has no inputs specification -->
+  <Target Name="GenerateTfmSpecificConsumerProps"
+          DependsOnTargets="GenerateConsumerBindMappingFile"
+          Outputs="@(TfmConsumerProps)"
+          Condition="'$(SharpGenGenerateConsumerBindMapping)' == 'true'">
+    <ItemGroup>
+      <TfmConsumerPropsLines Include="&lt;Project&gt;" />
+      <TfmConsumerPropsLines Include="&lt;ItemGroup&gt;" />
+      <TfmConsumerPropsLines Include='&lt;SharpGenConsumerMapping Include=&quot;%24(MSBuildThisFileDirectory)$(SharpGenConsumerBindMappingConfigId).BindMapping.xml&quot;/&gt;' />
+      <TfmConsumerPropsLines Include="&lt;/ItemGroup&gt;" />
+      <TfmConsumerPropsLines Include="&lt;/Project&gt;" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="@(TfmConsumerProps)"
+                      Lines="@(TfmConsumerPropsLines)"
+                      Overwrite="true" />
+  </Target>
+
+  <Target Name="GenerateSharpGenBindings"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          Condition="'@(SharpGenMapping)' != ''"
+          DependsOnTargets="@(GenerateSharpGenBindingsDependsOn)" />
+
+  <Target Name="CreateIntermediateDir">
+    <MakeDir Directories="$(SharpGenIntermediateDir)" />
+    <MakeDir Directories="$(SharpGenGeneratedCodeFolder)" />
+  </Target>
+
+  <!--
+    Notes regarding MSBuild behavior (see TargetUpToDateChecker):
+    1. This task always has non-empty inputs and outputs (otherwise it would always do FullBuild)
+    2. MSBuild has 2 definitions for discrete items:
+    2.1. Item not in any of item vectors (like foo.cs instead of @(Foo))
+    2.2. Either (2.1) or item in item vector not mentioned in inputs (more broad definition of discreteness)
+    3. This task has no discrete outputs by (2.1) definition, but has them by (2.2) definition (@(GeneratedCSharpFiles))
+    4. Because of (1) and (3), MSBuild will fall back to PerformDependencyAnalysisIfDiscreteOutputs approach
+    5. Given (1), PerformDependencyAnalysisIfDiscreteOutputs can either result in FullBuild, or SkipUpToDate
+    6. PerformDependencyAnalysisIfDiscreteOutputs does simple LastWriteFileUtcTime check of all inputs vs all outputs
+    7. The fact in (5) means that incremental builds are not applicable for this target, which is a good thing
+
+    Why do we need MSBuild incremental builds disabled for this target?
+    Basically, if any of the inputs are changed, we can't reuse any of the existing mapping data and need to regenerate bindings.
+    There is one exception: documentation cache from extensions (@(SharpGenExternalDocs) doesn't use that cache).
+    This cache is managed by SharpGenTask internally, there is no need for MSBuild to know about that.
+
+    So the only variants for this target is either doing a full build, or skipping it?
+    Yes, that is correct.
+
+    What about property changes? If I change e.g. @(CastXmlArg), that is not an input of this target. Will my binding be stale?
+    Unlike SharpGen v1, SharpGen v2 is capable of handling this scenario.
+    To implement that, we could've used $(MSBuildAllProjects).
+
+    What is the $(MSBuildAllProjects)?
+    $(MSBuildAllProjects) in the inputs expands to:
+    1. (pre-VS2019) The list of all MSBuild files setting this property (it was considered a good practise back then).
+                    It was almost always set by appending $(MSBuildThisFileFullPath).
+                    This way, it was useful to take many project files as input dependency for up-to-date checks.
+    2. (VS2019+) The list, where the first element is the newest (by modified time) MSBuild file.
+                 The rest of the list is as specified (1) for files not updated to take new (better) behavior into account.
+                 This means that it is compatible to (1) for the purposes of up-to-date checks but much faster.
+
+    Then why doesn't SharpGen use it?
+    Because it invalidates on every project file change, but we don't need to regenerate bindings that often.
+    It also doesn't take the ability to pass properties via command-line arguments into account.
+    This way, project files don't change, but properties still do. That's unacceptable.
+    So we use @(SharpGenPropertyCache) instead to watch for all changes we are interested in.
+    E.g. we don't care about changes in $(TargetFrameworks), but we do care about changes in $(SharpGenMacros).
+
+    What is the @(SharpGenPropertyCache)?
+    @(SharpGenPropertyCache) is read and written in the SharpGenReadPropertyCache target.
+    The idea is to take all properties passed to SharpGenTask, hash them, and store the hash in a file.
+    If the hash of current properties' values doesn't match the hash on disk, file is overwritten.
+    Since @(SharpGenPropertyCache) is listed as target input, such event triggers bindings regeneration.
+
+    What is the deal with @(SharpGenInputsCache)?
+    That is an equivalent of @(SharpGenIncludedHeadersCache) from SharpGen v1.
+    @(SharpGenInputsCache) is a list of headers and configs loaded by SharpGenTask during the last run.
+    Note, that there may be some config files present in @(SharpGenInputsCache) and missing in @(SharpGenMapping) or @(SharpGenConsumerMapping).
+    And it might be not because of removed item from the last run, but because of some dependencies specified only in config files themselves.
+    Yeah, there is a way from a config file to specify a dependency on another config. It is an undocumented feature in SharpGen 1.
+    It's used internally by SharpGenTask to create a "root" config file, but it is, in fact, also exposed to XML via <file /> elements.
+    TODO: document this for SharpGen v2.
+
+    How does @(SharpGenInputsCache) work?
+    GenerateSharpGenBindings depends on SharpGenReadInputsCache being executed before SharpGenExecute.
+    That task reads the file line-by-line and outputs it into @(SharpGenInputs) item vector for SharpGenExecute to take as an input.
+    When SharpGenExecute runs SharpGenTask, it will overwrite @(SharpGenInputsCache) file with a new information.
+    Since @(SharpGenInputsCache) is written before @(GeneratedCSharpFiles), it will ensure the next time project is built,
+    it will pass target up-to-date checks.
+
+    What are the guidelines for modifying inputs/outputs for this target?
+    1. Ensure that the incremental builds are still not applicable for this target per TargetUpToDateChecker described above.
+    2. Think twice before adding anything to both inputs and outputs. It will likely break up-to-date checks.
+
+    SharpGen generates more files than specified in Outputs (e.g. *.h). Is that a mistake in outputs specification?
+    No, that's intentional. These files are temporaries, implementation detail.
+    They should not take part in MSBuild up-to-date checking mechanism.
+  -->
+  <Target Name="SharpGenExecute"
+          Inputs="@(SharpGenSdkAssembly);@(SharpGenCastXml);@(SharpGenExtension);@(SharpGenMapping);@(SharpGenConsumerMapping);@(SharpGenInputs);@(SharpGenExternalDocs);@(SharpGenPropertyCache)"
+          Outputs="@(SharpGenInputsCache);@(GeneratedCSharpFiles);@(SharpGenDocumentationCache)">
+    <SharpGenTask CastXmlArguments="@(CastXmlArg)"
+                  CastXmlExecutable="@(SharpGenCastXml)"
+                  ConfigFiles="@(SharpGenMapping);@(SharpGenConsumerMapping)"
+                  ConsumerBindMappingConfig="@(SharpGenConsumerBindMappingFile)"
+                  DebugWaitForDebuggerAttach="$(SharpGenWaitForDebuggerAttach)"
+                  DocumentationCache="@(SharpGenDocumentationCache)"
+                  ExtensionAssemblies="@(SharpGenExtension)"
+                  ExternalDocumentation="@(SharpGenExternalDocs)"
+                  GeneratedCodeFolder="$(SharpGenGeneratedCodeFolder)"
+                  GlobalNamespaceOverrides="@(SharpGenGlobalNamespaceOverrides)"
+                  InputsCache="@(SharpGenInputsCache)"
+                  Macros="$(SharpGenMacros)"
+                  OutputPath="$(SharpGenIntermediateDir)"
+                  Platforms="@(SharpGenPlatforms)" />
+
+    <!-- MSBuild will include these items even when target is considered up-to-date. -->
+    <!-- Added bonus: these don't show up in IDE file tree (no clutter) -->
+    <ItemGroup>
+      <Compile Include="@(GeneratedCSharpFiles)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- The up-to-date check for this target will always yield FullBuild result since it has no inputs specification -->
+  <Target Name="SharpGenReadCaches" Outputs="@(SharpGenPropertyCache)">
+    <ItemGroup Condition="'@(SharpGenPlatforms)' == '' and '$(RuntimeIdentifier)' != ''">
+      <SharpGenPlatforms Include="Windows" Condition="$(RuntimeIdentifier.StartsWith('win'))" />
+      <SharpGenPlatforms Include="ItaniumSystemV" Condition="!$(RuntimeIdentifier.StartsWith('win'))" />
+    </ItemGroup>
+
+    <ReadLinesFromFile Condition="Exists('@(SharpGenInputsCache)')"
+                       File="@(SharpGenInputsCache)">
+      <Output TaskParameter="Lines" ItemName="SharpGenInputs" />
+    </ReadLinesFromFile>
+
+    <SharpPropertyCacheTask CastXmlArguments="@(CastXmlArg)"
+                            CastXmlExecutable="@(SharpGenCastXml)"
+                            ConfigFiles="@(SharpGenMapping);@(SharpGenConsumerMapping)"
+                            ConsumerBindMappingConfig="@(SharpGenConsumerBindMappingFile)"
+                            DebugWaitForDebuggerAttach="$(SharpGenWaitForDebuggerAttach)"
+                            DocumentationCache="@(SharpGenDocumentationCache)"
+                            ExtensionAssemblies="@(SharpGenExtension)"
+                            ExternalDocumentation="@(SharpGenExternalDocs)"
+                            GeneratedCodeFolder="$(SharpGenGeneratedCodeFolder)"
+                            GlobalNamespaceOverrides="@(SharpGenGlobalNamespaceOverrides)"
+                            InputsCache="@(SharpGenInputsCache)"
+                            Macros="$(SharpGenMacros)"
+                            OutputPath="$(SharpGenIntermediateDir)"
+                            Platforms="@(SharpGenPlatforms)"
+                            PropertyCache="@(SharpGenPropertyCache)" />
+  </Target>
+
+  <Target Name="GenerateConsumerBindMappingFile"
+          Outputs="@(SharpGenConsumerBindMappingFile)"
+          Condition="'@(SharpGenMapping)' != ''" />
+  
+  <Target Name="CleanSharpGen" BeforeTargets="CoreClean">
+    <ItemGroup>
+      <Clean Include="$(SharpGenIntermediateDir)*" />
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="RunSharpPatchTask"
+          DependsOnTargets="CoreCompile"
+          BeforeTargets="CopyFilesToOutputDirectory"
+          Inputs="@(IntermediateAssembly);@(ReferencePath)"
+          Outputs="@(IntermediateAssembly->'%(FullPath).check')">
+    <SharpPatchTask AssemblyToPatch="%(IntermediateAssembly.FullPath)"
+                References="@(ReferencePath)" />
+  </Target>
+
+  <Import Project="$(MSBuildThisFileDirectory)GetSnPath.$(MSBuildRuntimeType).props" />
+
+  <Target Name="ResignAssembly"
+          DependsOnTargets="GetSnPath"
+          Condition="'$(SignAssembly)' =='true'">
+    <Error Text="Could not find 'sn' executable. Cannot resign the patched assembly"
+           Condition="'$(SnPath)' == '' OR !Exists('$(SnPath)')" />
+    <Exec Command='"$(SnPath)" $(SnParam) %(IntermediateAssembly.FullPath) $(AssemblyOriginatorKeyFile)'
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <Target Name="PatchAssembly"
+          DependsOnTargets="RunSharpPatchTask;ResignAssembly"
+          BeforeTargets="CopyFilesToOutputDirectory"
+          Inputs="@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly->'%(FullPath).check')" />
+
+  <!--
+    ============================================================
+              IncludeSharpGenExtensionPackageReferences
+
+       Add package references for @(SharpGenExtensionPackage)
+    ============================================================
+    -->
+  <Target Name="IncludeSharpGenExtensionPackageReferences"
+          BeforeTargets="_CheckForInvalidConfigurationAndPlatform;CollectPackageReferences"
+          Condition="'@(SharpGenExtensionPackage)' != ''">
+    <ItemGroup>
+      <PackageReference Include="@(SharpGenExtensionPackage)"
+                        Version="%(SharpGenExtensionPackage.Version)"
+                        IsImplicitlyDefined="true"
+                        PrivateAssets="All" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    ============================================================
+              IncludeSharpGenRuntimePackageReference
+
+              Add SharpGen.Runtime package reference
+    ============================================================
+    -->
+  <Target Name="IncludeSharpGenRuntimePackageReference"
+          BeforeTargets="_CheckForInvalidConfigurationAndPlatform;CollectPackageReferences"
+          Condition="'$(SharpGenIncludeRuntimePackageReference)' != 'false'">
+    <ItemGroup>
+      <_ExistingSharpGenRuntimePackageReference Include="@(PackageReference)"
+                                                Condition="'%(PackageReference.Identity)' == 'SharpGen.Runtime'" />
+
+      <PackageReference Include="SharpGen.Runtime"
+                        Version="$(SharpGenSdkVersion)"
+                        IsImplicitlyDefined="true"
+                        Condition="'@(_ExistingSharpGenRuntimePackageReference)' == ''" />
+
+      <Warning Text="SharpGen.Runtime is implicitly referenced by the SharpGenTools MSBuild SDK. Avoid referencing it explicitly to prevent version mismatch issues."
+               File="$(MSBuildProjectFullPath)"
+               Code="SD0001"
+               Condition="'$(SharpGenDisableExistingRuntimePackageReferenceWarning)' != 'true' and '@(_ExistingSharpGenRuntimePackageReference)' != ''" />
+    </ItemGroup>
+  </Target>
+
+</Project>

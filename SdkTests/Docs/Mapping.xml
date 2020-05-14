@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config id="docs" xmlns="urn:SharpGen.Config">
+  <namespace>Docs</namespace>
+
+  <sdk name="WindowsSdk" version="10.0.19613.0" />
+  <sdk name="StdLib" />
+
+  <include file="uianimation.h" namespace="Docs" output="AnimationManager">
+    <attach>IUIAnimationManager</attach>
+    <attach>IUIAnimationVariable</attach>
+    <attach>IUIAnimationTransition</attach>
+    <attach>IUIAnimationStoryboard</attach>
+    <attach>UI_ANIMATION_UPDATE_RESULT</attach>
+    <attach>UI_ANIMATION_MANAGER_STATUS</attach>
+    <attach>UI_ANIMATION_MODE</attach>
+    <attach>IUIAnimationManagerEventHandler</attach>
+    <attach>IUIAnimationPriorityComparison</attach>
+    <attach>UI_ANIMATION_ROUNDING_MODE</attach>
+    <attach>IUIAnimationVariableChangeHandler</attach>
+    <attach>IUIAnimationVariableIntegerChangeHandler</attach>
+    <attach>UI_ANIMATION_SCHEDULING_RESULT</attach>
+    <attach>UI_ANIMATION_STORYBOARD_STATUS</attach>
+    <attach>IUIAnimationStoryboardEventHandler</attach>
+    <attach>UI_ANIMATION_PRIORITY_EFFECT</attach>
+  </include>
+
+  <extension>
+    <create class="Docs.AnimationManager" visibility="public static" />
+  </extension>
+
+  <bindings>
+    <bind from="D3DMATRIX" to="System.Numerics.Matrix4x4" />
+    <bind from="__MIDL___MIDL_itf_UIAnimation_0000_0002_0003" to="System.IntPtr" />
+  </bindings>
+
+  <mapping>
+    <!-- IUIAnimationManager -->
+    <map param="IUIAnimationManager::CreateAnimationVariable::variable" return="true" />
+
+    <map param="IUIAnimationManager::CreateStoryboard::storyboard" return="true" />
+
+    <map param="IUIAnimationManager::Update::updateResult" return="true"/>
+
+    <map method="IUIAnimationManager::GetVariableFromTag" visibility="internal"/>
+    <map param="IUIAnimationManager::GetVariableFromTag::object" type="void"/>
+    <map param="IUIAnimationManager::GetVariableFromTag::variable" return="true"/>
+
+    <map method="IUIAnimationManager::GetStoryboardFromTag" visibility="internal"/>
+    <map param="IUIAnimationManager::GetStoryboardFromTag::object" type="void"/>
+    <map param="IUIAnimationManager::GetStoryboardFromTag::storyboard" return="true"/>
+
+    <!-- Don't generate properties for event handler setter -->
+    <map method=".*::Set.*Handler" property="false" />
+
+    <!-- Callback for Priority Comparison -->
+    <map method="IUIAnimationManager::Set.*Comparison" property="false" visibility="internal" />
+  </mapping>
+</config>
