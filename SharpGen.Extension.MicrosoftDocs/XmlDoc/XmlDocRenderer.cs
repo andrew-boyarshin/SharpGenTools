@@ -15,13 +15,15 @@ using SharpGen.Extension.MicrosoftDocs.XmlDoc.Inlines;
 namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
 {
     /// <summary>
-    /// Default HTML renderer for a Markdown <see cref="MarkdownDocument"/> object.
+    ///     Default HTML renderer for a Markdown <see cref="MarkdownDocument" /> object.
     /// </summary>
-    /// <seealso cref="TextRendererBase{XmlDocRenderer}" />
+    /// <seealso cref="TextRendererBase{T}" />
     public class XmlDocRenderer : TextRendererBase<XmlDocRenderer>
     {
+        private static readonly IdnMapping IdnMapping = new IdnMapping();
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="XmlDocRenderer"/> class.
+        ///     Initializes a new instance of the <see cref="XmlDocRenderer" /> class.
         /// </summary>
         /// <param name="writer">The writer.</param>
         public XmlDocRenderer(TextWriter writer) : base(writer)
@@ -48,42 +50,32 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to output HTML tags when rendering. See remarks.
+        ///     Gets or sets a value indicating whether to output HTML tags when rendering. See remarks.
         /// </summary>
         /// <remarks>
-        /// This is used by some renderers to disable HTML tags when rendering some inline elements (for image links).
+        ///     This is used by some renderers to disable HTML tags when rendering some inline elements (for image links).
         /// </remarks>
         public bool EnableHtmlForInline { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether to output HTML tags when rendering. See remarks.
-        /// </summary>
-        /// <remarks>
-        /// This is used by some renderers to disable HTML tags when rendering some block elements (for image links).
-        /// </remarks>
-        public bool EnableHtmlForBlock { get; set; } = true;
-
-        public bool EnableHtmlEscape { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to use implicit paragraph (optional &lt;p&gt;)
+        ///     Gets or sets a value indicating whether to use implicit paragraph (optional &lt;p&gt;)
         /// </summary>
         public bool ImplicitParagraph { get; set; }
 
         public bool UseNonAsciiNoEscape { get; set; }
 
         /// <summary>
-        /// Gets a value to use as the base url for all relative links
+        ///     Gets a value to use as the base url for all relative links
         /// </summary>
         public Uri BaseUrl { get; set; }
 
         /// <summary>
-        /// Allows links to be rewritten
+        ///     Allows links to be rewritten
         /// </summary>
         public Func<string, string> LinkRewriter { get; set; }
 
         /// <summary>
-        /// Writes the content escaped for HTML.
+        ///     Writes the content escaped for HTML.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns>This instance</returns>
@@ -98,7 +90,7 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
         }
 
         /// <summary>
-        /// Writes the content escaped for HTML.
+        ///     Writes the content escaped for HTML.
         /// </summary>
         /// <param name="slice">The slice.</param>
         /// <param name="softEscape">Only escape &lt; and &amp;</param>
@@ -106,27 +98,22 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public XmlDocRenderer WriteEscape(ref StringSlice slice, bool softEscape = false)
         {
-            if (slice.Start > slice.End)
-            {
-                return this;
-            }
+            if (slice.Start > slice.End) return this;
             return WriteEscape(slice.Text, slice.Start, slice.Length, softEscape);
         }
 
         /// <summary>
-        /// Writes the content escaped for HTML.
+        ///     Writes the content escaped for HTML.
         /// </summary>
         /// <param name="slice">The slice.</param>
         /// <param name="softEscape">Only escape &lt; and &amp;</param>
         /// <returns>This instance</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public XmlDocRenderer WriteEscape(StringSlice slice, bool softEscape = false)
-        {
-            return WriteEscape(ref slice, softEscape);
-        }
+        public XmlDocRenderer WriteEscape(StringSlice slice, bool softEscape = false) =>
+            WriteEscape(ref slice, softEscape);
 
         /// <summary>
-        /// Writes the content escaped for HTML.
+        ///     Writes the content escaped for HTML.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <param name="offset">The offset.</param>
@@ -139,60 +126,46 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
                 return this;
 
             var end = offset + length;
-            int previousOffset = offset;
-            for (;offset < end;  offset++)
-            {
+            var previousOffset = offset;
+            for (; offset < end; offset++)
                 switch (content[offset])
                 {
                     case '<':
                         Write(content, previousOffset, offset - previousOffset);
-                        if (EnableHtmlEscape)
-                        {
-                            Write("&lt;");
-                        }
+                        Write("&lt;");
                         previousOffset = offset + 1;
                         break;
                     case '>':
                         if (!softEscape)
                         {
                             Write(content, previousOffset, offset - previousOffset);
-                            if (EnableHtmlEscape)
-                            {
-                                Write("&gt;");
-                            }
+                            Write("&gt;");
                             previousOffset = offset + 1;
                         }
+
                         break;
                     case '&':
                         Write(content, previousOffset, offset - previousOffset);
-                        if (EnableHtmlEscape)
-                        {
-                            Write("&amp;");
-                        }
+                        Write("&amp;");
                         previousOffset = offset + 1;
                         break;
                     case '"':
                         if (!softEscape)
                         {
                             Write(content, previousOffset, offset - previousOffset);
-                            if (EnableHtmlEscape)
-                            {
-                                Write("&quot;");
-                            }
+                            Write("&quot;");
                             previousOffset = offset + 1;
                         }
+
                         break;
                 }
-            }
 
             Write(content, previousOffset, end - previousOffset);
             return this;
         }
 
-        private static readonly IdnMapping IdnMapping = new IdnMapping();
-
         /// <summary>
-        /// Writes the URL escaped for HTML.
+        ///     Writes the URL escaped for HTML.
         /// </summary>
         /// <param name="content">The content.</param>
         /// <returns>This instance</returns>
@@ -204,45 +177,35 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
             if (BaseUrl != null
                 // According to https://github.com/dotnet/runtime/issues/22718
                 // this is the proper cross-platform way to check whether a uri is absolute or not:
-                && Uri.TryCreate(content, UriKind.RelativeOrAbsolute, out var contentUri) && !contentUri.IsAbsoluteUri)
-            {
+             && Uri.TryCreate(content, UriKind.RelativeOrAbsolute, out var contentUri) && !contentUri.IsAbsoluteUri)
                 content = new Uri(BaseUrl, contentUri).AbsoluteUri;
-            }
 
-            if (LinkRewriter != null)
-            {
-                content = LinkRewriter(content);
-            }
+            if (LinkRewriter != null) content = LinkRewriter(content);
 
             // ab://c.d = 8 chars
-            int schemeOffset = content.Length < 8 ? -1 : content.IndexOf("://", 2, StringComparison.Ordinal);
+            var schemeOffset = content.Length < 8 ? -1 : content.IndexOf("://", 2, StringComparison.Ordinal);
             if (schemeOffset != -1) // This is an absolute URL
             {
                 schemeOffset += 3; // skip ://
                 WriteEscapeUrl(content, 0, schemeOffset);
 
-                bool idnaEncodeDomain = false;
-                int endOfDomain = schemeOffset;
+                var idnaEncodeDomain = false;
+                var endOfDomain = schemeOffset;
                 for (; endOfDomain < content.Length; endOfDomain++)
                 {
-                    char c = content[endOfDomain];
+                    var c = content[endOfDomain];
                     if (c == '/' || c == '?' || c == '#' || c == ':') // End of domain part
-                    {
                         break;
-                    }
-                    if (c > 127)
-                    {
-                        idnaEncodeDomain = true;
-                    }
+                    if (c > 127) idnaEncodeDomain = true;
                 }
 
                 if (idnaEncodeDomain)
                 {
-                    string domainName = IdnMapping.GetAscii(content, schemeOffset, endOfDomain - schemeOffset);
+                    var domainName = IdnMapping.GetAscii(content, schemeOffset, endOfDomain - schemeOffset);
 
                     // Escape the characters (see Commonmark example 327 and think of it with a non-ascii symbol)
-                    int previousPosition = 0;
-                    for (int i = 0; i < domainName.Length; i++)
+                    var previousPosition = 0;
+                    for (var i = 0; i < domainName.Length; i++)
                     {
                         var escape = HtmlHelper.EscapeUrlCharacter(domainName[i]);
                         if (escape != null)
@@ -252,6 +215,7 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
                             Write(escape);
                         }
                     }
+
                     Write(domainName, previousPosition, domainName.Length - previousPosition);
                     WriteEscapeUrl(content, endOfDomain, content.Length);
                 }
@@ -270,7 +234,7 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
 
         private void WriteEscapeUrl(string content, int start, int length)
         {
-            int previousPosition = start;
+            var previousPosition = start;
             for (var i = previousPosition; i < length; i++)
             {
                 var c = content[i];
@@ -300,27 +264,26 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
                         byte[] bytes;
                         if (c >= '\ud800' && c <= '\udfff' && previousPosition < length)
                         {
-                            bytes = Encoding.UTF8.GetBytes(new[] { c, content[previousPosition] });
+                            bytes = Encoding.UTF8.GetBytes(new[] {c, content[previousPosition]});
                             // Skip next char as it is decoded above
                             i++;
                             previousPosition = i + 1;
                         }
                         else
                         {
-                            bytes = Encoding.UTF8.GetBytes(new[] { c });
+                            bytes = Encoding.UTF8.GetBytes(new[] {c});
                         }
-                        for (var j = 0; j < bytes.Length; j++)
-                        {
-                            Write($"%{bytes[j]:X2}");
-                        }
+
+                        for (var j = 0; j < bytes.Length; j++) Write($"%{bytes[j]:X2}");
                     }
                 }
             }
+
             Write(content, previousPosition, length - previousPosition);
         }
 
         /// <summary>
-        /// Writes the lines of a <see cref="LeafBlock"/>
+        ///     Writes the lines of a <see cref="LeafBlock" />
         /// </summary>
         /// <param name="leafBlock">The leaf block.</param>
         /// <param name="writeEndOfLines">if set to <c>true</c> write end of lines.</param>
@@ -333,24 +296,14 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
 
             var lines = leafBlock.Lines;
             var slices = lines.Lines;
-            for (int i = 0; i < lines.Count; i++)
+            for (var i = 0; i < lines.Count; i++)
             {
-                if (!writeEndOfLines && i > 0)
-                {
-                    WriteLine();
-                }
+                if (!writeEndOfLines && i > 0) WriteLine();
                 if (escape)
-                {
                     WriteEscape(ref slices[i].Slice, softEscape);
-                }
                 else
-                {
                     Write(ref slices[i].Slice);
-                }
-                if (writeEndOfLines)
-                {
-                    WriteLine();
-                }
+                if (writeEndOfLines) WriteLine();
             }
         }
     }

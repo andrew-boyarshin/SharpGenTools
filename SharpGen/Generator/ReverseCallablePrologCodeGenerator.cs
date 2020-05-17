@@ -30,7 +30,7 @@ namespace SharpGen.Generator
                     yield return statement;
                 }
             }
-            else if (csElement.HasReturnType && (!csElement.HideReturnType || csElement.ForceReturnType))
+            else if (csElement.HasReturnTypeValue)
             {
                 foreach (var statement in GenerateProlog(csElement.ReturnValue, null))
                 {

@@ -1,11 +1,13 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Polly;
+using Polly.Contrib.WaitAndRetry;
 using SharpGen.CppModel;
 using SharpGen.Doc;
-using SharpGen.Logging;
 
 namespace SharpGenTools.Sdk.Documentation
 {
@@ -36,12 +38,12 @@ namespace SharpGenTools.Sdk.Documentation
             await Task.WhenAll(documentationTasks);
         }
 
-        private static async Task<IDocItem> DocumentElement(this IDocProvider docProvider,
-                                                           DocItemCache cache,
-                                                           CppElement element,
-                                                           DocumentationContext context,
-                                                           bool documentInnerElements,
-                                                           string name)
+        private static async Task<IDocItem?> DocumentElement(this IDocProvider docProvider,
+                                                             DocItemCache cache,
+                                                             CppElement element,
+                                                             DocumentationContext context,
+                                                             bool documentInnerElements,
+                                                             string? name)
         {
             var docName = name ?? element.Name;
 
@@ -75,30 +77,41 @@ namespace SharpGenTools.Sdk.Documentation
 
             return docItem;
 
-            async Task<IDocItem> QueryDocumentationProvider()
+            async Task<IDocItem?> QueryDocumentationProvider()
             {
-                try
-                {
-                    return await docProvider.FindDocumentationAsync(docName, context);
-                }
-                catch (Exception e)
-                {
-                    context.Logger.Error(
-                        LoggingCodes.DocumentationProviderInternalError,
-                        "Exception occurred during {0} documentation provider query for \"{1}\".",
-                        e,
-                        docProvider.GetType().Name,
-                        docName
-                    );
+                var delay = Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromMilliseconds(100), 5);
 
-                    return null;
+                async Task<IDocItem?> Action() => await docProvider.FindDocumentationAsync(docName, context);
+
+                Task OnFallbackAsync(DelegateResult<IDocItem?> arg)
+                {
+                    var failure = new DocumentationQueryFailure(docName)
+                    {
+                        Exception = arg.Exception,
+                        FailedProvider = docProvider.GetType()
+                    };
+
+                    context.Failures.Add(failure);
+
+                    return Task.CompletedTask;
                 }
+
+                var fallbackPolicy = Policy<IDocItem?>.Handle<Exception>()
+                                                      .FallbackAsync((IDocItem?) null, OnFallbackAsync);
+
+                var retryPolicy = Policy<IDocItem?>.HandleResult((IDocItem?) null)
+                                                   .Or<Exception>()
+                                                   .WaitAndRetryAsync(delay);
+
+                var policies = Policy.WrapAsync(fallbackPolicy, retryPolicy);
+
+                return await policies.ExecuteAsync(Action);
             }
         }
 
         private static async Task DocumentCallable(this IDocProvider docProvider, DocItemCache cache,
                                                    CppCallable callable, DocumentationContext context,
-                                                   string name = null)
+                                                   string? name = null)
         {
             var docItem = await docProvider.DocumentElement(cache, callable, context, true, name);
 

@@ -21,12 +21,12 @@ namespace SharpGenTools.Sdk.Documentation
                 throw new JsonException();
 
             item.ShortId = Read<string>(ref reader, nameof(IDocItem.ShortId));
-            AssignSet(item.Names, Read<HashSet<string>>(ref reader, nameof(IDocItem.Names)));
+            AssignList(item.Names, Read<List<string>>(ref reader, nameof(IDocItem.Names)));
             item.Summary = Read<string>(ref reader, nameof(IDocItem.Summary));
             item.Remarks = Read<string>(ref reader, nameof(IDocItem.Remarks));
             item.Return = Read<string>(ref reader, nameof(IDocItem.Return));
             AssignList(item.Items, Read<List<IDocSubItem>>(ref reader, nameof(IDocItem.Items)));
-            AssignSet(item.SeeAlso, Read<HashSet<string>>(ref reader, nameof(IDocItem.SeeAlso)));
+            AssignList(item.SeeAlso, Read<List<string>>(ref reader, nameof(IDocItem.SeeAlso)));
 
             if (!reader.Read())
                 throw new JsonException();
@@ -44,18 +44,18 @@ namespace SharpGenTools.Sdk.Documentation
 
         public override void Write(Utf8JsonWriter writer, IDocItem value, JsonSerializerOptions options)
         {
-            JsonConverter<ISet<string>>? setStringConverter = null;
+            JsonConverter<IList<string>>? listStringConverter = null;
             JsonConverter<IList<IDocSubItem>>? listSubItemConverter = null;
 
             writer.WriteStartObject();
 
             writer.WriteString(nameof(value.ShortId), value.ShortId);
-            Write(ref setStringConverter, nameof(value.Names), value.Names);
+            Write(ref listStringConverter, nameof(value.Names), value.Names);
             writer.WriteString(nameof(value.Summary), value.Summary);
             writer.WriteString(nameof(value.Remarks), value.Remarks);
             writer.WriteString(nameof(value.Return), value.Return);
             Write(ref listSubItemConverter, nameof(value.Items), value.Items);
-            Write(ref setStringConverter, nameof(value.SeeAlso), value.SeeAlso);
+            Write(ref listStringConverter, nameof(value.SeeAlso), value.SeeAlso);
 
             writer.WriteEndObject();
 

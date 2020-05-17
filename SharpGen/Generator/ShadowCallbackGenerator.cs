@@ -237,9 +237,7 @@ namespace SharpGen.Generator
 
             var returnValueNeedsMarshalling = returnValueMarshaller.GeneratesMarshalVariable(csElement.ReturnValue);
 
-            var hasReturnValue = csElement.HasReturnType && (!csElement.HideReturnType || csElement.ForceReturnType);
-
-            if (!hasReturnValue && !csElement.HasReturnTypeParameter)
+            if (!csElement.HasReturnStatement)
             {
                 statements.Add(ExpressionStatement(invocation));
             }
@@ -283,14 +281,14 @@ namespace SharpGen.Generator
                                 ? IdentifierName(generators.Marshalling.GetMarshalStorageLocationIdentifier(csElement.ReturnValue))
                                 : IdentifierName(csElement.ReturnValue.Name);
 
-            bool doReturnResult = csElement.ReturnValue.PublicType.QualifiedName == globalNamespace.GetTypeName(WellKnownName.Result);
+            var doReturnResult = csElement.ReturnValue.PublicType.QualifiedName == globalNamespace.GetTypeName(WellKnownName.Result);
 
-            if (doReturnResult && csElement.HasReturnType && !csElement.HideReturnType && sig.ReturnType.TypeName == "int" && csElement.ReturnValue.UsedAsReturn && !csElement.HasReturnTypeParameter)
+            if (doReturnResult && csElement.HasReturnTypeValue && sig.ReturnType.TypeName == "int" && csElement.ReturnValue.UsedAsReturn && !csElement.HasReturnTypeParameter)
             {
                 nativeReturnLocation = CastExpression(interopReturnType, ParenthesizedExpression(nativeReturnLocation));
             }
 
-            if (csElement.HasReturnType && (!csElement.HideReturnType || csElement.ForceReturnType))
+            if (csElement.HasReturnTypeValue)
             {
                 statements.Add(
                     ReturnStatement(isForcedReturnBufferSig ?

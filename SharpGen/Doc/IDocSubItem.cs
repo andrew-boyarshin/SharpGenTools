@@ -31,6 +31,6 @@ namespace SharpGen.Doc
 
         string Description { get; set; }
 
-        ISet<string> Attributes { get; }
+        IList<string> Attributes { get; }
     }
 }

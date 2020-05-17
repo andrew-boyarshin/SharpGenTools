@@ -239,7 +239,8 @@
                   InputsCache="@(SharpGenInputsCache)"
                   Macros="$(SharpGenMacros)"
                   OutputPath="$(SharpGenIntermediateDir)"
-                  Platforms="@(SharpGenPlatforms)" />
+                  Platforms="@(SharpGenPlatforms)"
+                  SilenceMissingDocumentationErrorIdentifierPatterns="@(SharpGenSilenceMissingDocumentationErrorIdentifierPatterns)"/>
 
     <!-- MSBuild will include these items even when target is considered up-to-date. -->
     <!-- Added bonus: these don't show up in IDE file tree (no clutter) -->
@@ -274,7 +275,8 @@
                             Macros="$(SharpGenMacros)"
                             OutputPath="$(SharpGenIntermediateDir)"
                             Platforms="@(SharpGenPlatforms)"
-                            PropertyCache="@(SharpGenPropertyCache)" />
+                            PropertyCache="@(SharpGenPropertyCache)"
+                            SilenceMissingDocumentationErrorIdentifierPatterns="@(SharpGenSilenceMissingDocumentationErrorIdentifierPatterns)" />
   </Target>
 
   <Target Name="GenerateConsumerBindMappingFile"

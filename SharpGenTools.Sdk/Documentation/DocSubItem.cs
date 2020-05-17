@@ -9,8 +9,8 @@ namespace SharpGenTools.Sdk.Documentation
     /// <inheritdoc />
     public sealed class DocSubItem : IDocSubItem
     {
-        private readonly ObservableHashSet<string> attributes =
-            new ObservableHashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly ObservableSet<string> attributes =
+            new ObservableSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         private string description;
         private string term;
@@ -44,7 +44,7 @@ namespace SharpGenTools.Sdk.Documentation
             }
         }
 
-        public ISet<string> Attributes => attributes;
+        public IList<string> Attributes => attributes;
 
         public bool IsDirty { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using SharpGen.Config;
+﻿using System;
+using SharpGen.Config;
 using SharpGen.CppModel;
 using SharpGen.Transform;
 using System.Collections.Generic;
@@ -135,7 +136,9 @@ namespace SharpGen.Model
         public bool HasReturnType =>
             !(ReturnValue.PublicType is CsFundamentalType fundamental && fundamental.Type == typeof(void));
 
-        public bool HasPublicReturnType => HasReturnTypeParameter || HasReturnType;
+        internal bool HasReturnStatement => HasReturnTypeParameter || HasReturnTypeValue;
+
+        internal bool HasReturnTypeValue => HasReturnType && (ForceReturnType || !HideReturnType);
 
         [DataMember]
         public CsReturnValue ReturnValue { get; set; }

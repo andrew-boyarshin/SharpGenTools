@@ -9,11 +9,12 @@ using Markdig.Syntax.Inlines;
 namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
 {
     /// <summary>
-    /// A base class for HTML rendering <see cref="Block"/> and <see cref="Inline"/> Markdown objects.
+    ///     A base class for HTML rendering <see cref="Block" /> and <see cref="Inline" /> Markdown objects.
     /// </summary>
     /// <typeparam name="TObject">The type of the object.</typeparam>
     /// <seealso cref="IMarkdownObjectRenderer" />
-    public abstract class XmlDocObjectRenderer<TObject> : MarkdownObjectRenderer<XmlDocRenderer, TObject> where TObject : MarkdownObject
+    public abstract class XmlDocObjectRenderer<TObject> : MarkdownObjectRenderer<XmlDocRenderer, TObject>
+        where TObject : MarkdownObject
     {
     }
 }

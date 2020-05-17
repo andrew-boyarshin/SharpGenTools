@@ -22,7 +22,7 @@ namespace SharpGenTools.Sdk.Documentation
 
             subItem.Term = Read<string>(ref reader, nameof(IDocSubItem.Term));
             subItem.Description = Read<string>(ref reader, nameof(IDocSubItem.Description));
-            AssignSet(subItem.Attributes, Read<HashSet<string>>(ref reader, nameof(IDocSubItem.Attributes)));
+            AssignList(subItem.Attributes, Read<HashSet<string>>(ref reader, nameof(IDocSubItem.Attributes)));
 
             if (!reader.Read())
                 throw new JsonException();
@@ -40,13 +40,13 @@ namespace SharpGenTools.Sdk.Documentation
 
         public override void Write(Utf8JsonWriter writer, IDocSubItem value, JsonSerializerOptions options)
         {
-            JsonConverter<ISet<string>>? setStringConverter = null;
+            JsonConverter<IList<string>>? listStringConverter = null;
 
             writer.WriteStartObject();
 
             writer.WriteString(nameof(value.Term), value.Term);
             writer.WriteString(nameof(value.Description), value.Description);
-            Write(ref setStringConverter, nameof(value.Attributes), value.Attributes);
+            Write(ref listStringConverter, nameof(value.Attributes), value.Attributes);
 
             writer.WriteEndObject();
 

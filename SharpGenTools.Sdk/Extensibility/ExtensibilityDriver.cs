@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -85,19 +86,17 @@ namespace SharpGenTools.Sdk.Extensibility
             docProviders = docProviderBuilder.ToImmutable();
         }
 
-        public async Task DocumentModule(Logger logger, DocItemCache cache, CppModule module)
+        public async Task DocumentModule(Logger logger, DocItemCache cache, CppModule module, Lazy<DocumentationContext> context)
         {
             ResolveExtensibilityPoints(logger, out var documentationProviders);
 
             if (documentationProviders.Length == 0)
                 return;
 
-            var context = new DocumentationContext(logger);
-
             foreach (var documentationProvider in documentationProviders)
             {
                 // Wait on every provider (sequential execution to prevent data races)
-                await DocProviderExecutor.ApplyDocumentation(documentationProvider, cache, module, context);
+                await DocProviderExecutor.ApplyDocumentation(documentationProvider, cache, module, context.Value);
             }
         }
 

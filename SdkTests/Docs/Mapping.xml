@@ -24,35 +24,11 @@
     <attach>UI_ANIMATION_PRIORITY_EFFECT</attach>
   </include>
 
-  <extension>
-    <create class="Docs.AnimationManager" visibility="public static" />
-  </extension>
-
   <bindings>
     <bind from="D3DMATRIX" to="System.Numerics.Matrix4x4" />
     <bind from="__MIDL___MIDL_itf_UIAnimation_0000_0002_0003" to="System.IntPtr" />
   </bindings>
 
   <mapping>
-    <!-- IUIAnimationManager -->
-    <map param="IUIAnimationManager::CreateAnimationVariable::variable" return="true" />
-
-    <map param="IUIAnimationManager::CreateStoryboard::storyboard" return="true" />
-
-    <map param="IUIAnimationManager::Update::updateResult" return="true"/>
-
-    <map method="IUIAnimationManager::GetVariableFromTag" visibility="internal"/>
-    <map param="IUIAnimationManager::GetVariableFromTag::object" type="void"/>
-    <map param="IUIAnimationManager::GetVariableFromTag::variable" return="true"/>
-
-    <map method="IUIAnimationManager::GetStoryboardFromTag" visibility="internal"/>
-    <map param="IUIAnimationManager::GetStoryboardFromTag::object" type="void"/>
-    <map param="IUIAnimationManager::GetStoryboardFromTag::storyboard" return="true"/>
-
-    <!-- Don't generate properties for event handler setter -->
-    <map method=".*::Set.*Handler" property="false" />
-
-    <!-- Callback for Priority Comparison -->
-    <map method="IUIAnimationManager::Set.*Comparison" property="false" visibility="internal" />
   </mapping>
 </config>

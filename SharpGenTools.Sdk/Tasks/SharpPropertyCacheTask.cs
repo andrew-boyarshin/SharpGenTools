@@ -88,6 +88,7 @@ namespace SharpGenTools.Sdk.Tasks
             WriteStringArray(Macros);
             WriteString(OutputPath);
             WriteTaskItems(Platforms);
+            WriteTaskItems(SilenceMissingDocumentationErrorIdentifierPatterns);
             WriteTaskItem(ConsumerBindMappingConfig);
 
             void WriteString(string s)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SharpGen.Doc;
+using SharpGenTools.Sdk.Internal;
 
 namespace SharpGenTools.Sdk.Documentation
 {
@@ -37,13 +38,7 @@ namespace SharpGenTools.Sdk.Documentation
             converter.Write(writer, value, options);
         }
 
-        public static void AssignSet(ISet<string> storage, IReadOnlyCollection<string> source)
-        {
-            storage.IntersectWith(source);
-            storage.UnionWith(source);
-        }
-
-        public static void AssignList(ICollection<IDocSubItem> storage, IEnumerable<IDocSubItem> source)
+        public static void AssignList<T>(IList<T> storage, IEnumerable<T> source)
         {
             storage.Clear();
             foreach (var subItem in source)

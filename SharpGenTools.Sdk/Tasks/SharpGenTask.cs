@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using SharpGen;
 using SharpGen.Config;
@@ -120,7 +121,42 @@ namespace SharpGenTools.Sdk.Tasks
                             ? DocItemCache.Read(documentationCacheItemSpec)
                             : new DocItemCache();
 
-            ExtensibilityDriver.Instance.DocumentModule(SharpGenLogger, cache, group).Wait();
+            var docContext = new Lazy<DocumentationContext>(() => new DocumentationContext(SharpGenLogger));
+            ExtensibilityDriver.Instance.DocumentModule(SharpGenLogger, cache, group, docContext).Wait();
+
+            if (docContext.IsValueCreated)
+            {
+                Regex[] silencePatterns = null;
+
+                foreach (var queryFailure in docContext.Value.Failures)
+                {
+                    if (silencePatterns == null)
+                    {
+                        silencePatterns = new Regex[SilenceMissingDocumentationErrorIdentifierPatterns.Length];
+                        for (var i = 0; i < silencePatterns.Length; i++)
+                            silencePatterns[i] = new Regex(
+                                SilenceMissingDocumentationErrorIdentifierPatterns[i].ItemSpec,
+                                RegexOptions.CultureInvariant
+                            );
+                    }
+
+                    if (silencePatterns.Length != 0)
+                    {
+                        bool SilencePredicate(Regex x) => x.Match(queryFailure.Query).Success;
+
+                        if (silencePatterns.Any(SilencePredicate))
+                            continue;
+                    }
+
+                    SharpGenLogger.Error(
+                        LoggingCodes.DocumentationProviderInternalError,
+                        "Documentation provider [{0}] query for \"{1}\" failed.",
+                        queryFailure.Exception,
+                        queryFailure.FailedProvider?.Name ?? "<null>",
+                        queryFailure.Query
+                    );
+                }
+            }
 
             cache.WriteIfDirty(documentationCacheItemSpec);
 

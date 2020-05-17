@@ -218,12 +218,14 @@ namespace SharpGen.Model
             get => _cppElement;
             set
             {
-                if (_cppElement == value) return;
+                if (_cppElement == value)
+                    return;
 
                 _cppElement = value;
 
-                if (_cppElement == null) return;
-                
+                if (_cppElement == null)
+                    return;
+
                 DocId = string.IsNullOrEmpty(CppElement.Id) ? DocId : CppElement.Id;
                 Description = string.IsNullOrEmpty(CppElement.Description) ? Description : CppElement.Description;
                 Remarks = string.IsNullOrEmpty(CppElement.Remarks) ? Remarks : CppElement.Remarks;

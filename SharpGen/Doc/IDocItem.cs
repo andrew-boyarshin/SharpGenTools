@@ -27,40 +27,22 @@ namespace SharpGen.Doc
     /// </summary>
     public interface IDocItem : IDocMutableItem
     {
-        /// <summary>
-        /// Gets or sets the short id.
-        /// </summary>
         /// <value>
         /// The short id.
         /// </value>
         string ShortId { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name of the element.
-        /// </summary>
-        ISet<string> Names { get; }
+        IList<string> Names { get; }
 
-        /// <summary>
-        /// Gets or sets the summary.
-        /// </summary>
         /// <value>The summary.</value>
         string Summary { get; set; }
 
-        /// <summary>
-        /// Gets or sets the remarks.
-        /// </summary>
         /// <value>The remarks.</value>
         string Remarks { get; set; }
 
-        /// <summary>
-        /// Gets or sets the return.
-        /// </summary>
         /// <value>The return.</value>
         string Return { get; set; }
 
-        /// <summary>
-        /// Gets or sets the items.
-        /// </summary>
         /// <value>The items.</value>
         IList<IDocSubItem> Items { get; }
 
@@ -68,6 +50,6 @@ namespace SharpGen.Doc
         /// The list of see-also referenced names.
         /// <seealso cref="Names" />
         /// </summary>
-        ISet<string> SeeAlso { get; }
+        IList<string> SeeAlso { get; }
     }
 }

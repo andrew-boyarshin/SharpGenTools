@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <SdkTestNative />
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

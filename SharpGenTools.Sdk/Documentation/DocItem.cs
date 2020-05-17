@@ -12,11 +12,11 @@ namespace SharpGenTools.Sdk.Documentation
     {
         private readonly ObservableCollection<IDocSubItem> items = new ObservableCollection<IDocSubItem>();
 
-        private readonly ObservableHashSet<string> names =
-            new ObservableHashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly ObservableSet<string> names =
+            new ObservableSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
-        private readonly ObservableHashSet<string> seeAlso =
-            new ObservableHashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        private readonly ObservableSet<string> seeAlso =
+            new ObservableSet<string>(StringComparer.InvariantCultureIgnoreCase);
 
         private bool isDirty;
         private string remarks;
@@ -43,7 +43,7 @@ namespace SharpGenTools.Sdk.Documentation
             }
         }
 
-        public ISet<string> Names => names;
+        public IList<string> Names => names;
 
         public string Summary
         {
@@ -83,7 +83,7 @@ namespace SharpGenTools.Sdk.Documentation
 
         public IList<IDocSubItem> Items => items;
 
-        public ISet<string> SeeAlso => seeAlso;
+        public IList<string> SeeAlso => seeAlso;
 
         public bool IsDirty
         {
@@ -96,9 +96,6 @@ namespace SharpGenTools.Sdk.Documentation
             IsDirty = true;
         }
 
-        private static bool DirtyPredicate(IDocSubItem x)
-        {
-            return x.IsDirty;
-        }
+        private static bool DirtyPredicate(IDocSubItem x) => x.IsDirty;
     }
 }

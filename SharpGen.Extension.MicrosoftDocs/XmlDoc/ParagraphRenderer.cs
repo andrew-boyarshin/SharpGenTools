@@ -2,25 +2,21 @@
 // This file is licensed under the BSD-Clause 2 license. 
 // See the license.txt file in the project root for more information.
 
-using Markdig.Renderers;
 using Markdig.Syntax;
 
 namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
 {
     /// <summary>
-    /// A HTML renderer for a <see cref="ParagraphBlock"/>.
+    ///     A HTML renderer for a <see cref="ParagraphBlock" />.
     /// </summary>
     /// <seealso cref="XmlDocObjectRenderer{TObject}" />
     public class ParagraphRenderer : XmlDocObjectRenderer<ParagraphBlock>
     {
         protected override void Write(XmlDocRenderer renderer, ParagraphBlock obj)
         {
-            if (!renderer.ImplicitParagraph && renderer.EnableHtmlForBlock)
+            if (!renderer.ImplicitParagraph)
             {
-                if (!renderer.IsFirstInContainer)
-                {
-                    renderer.EnsureLine();
-                }
+                if (!renderer.IsFirstInContainer) renderer.EnsureLine();
 
                 renderer.Write("<para>");
             }
@@ -28,10 +24,7 @@ namespace SharpGen.Extension.MicrosoftDocs.XmlDoc
             renderer.WriteLeafInline(obj);
             if (!renderer.ImplicitParagraph)
             {
-                if (renderer.EnableHtmlForBlock)
-                {
-                    renderer.WriteLine("</para>");
-                }
+                renderer.WriteLine("</para>");
 
                 renderer.EnsureLine();
             }
