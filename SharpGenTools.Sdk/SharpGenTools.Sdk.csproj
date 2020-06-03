@@ -1,6 +1,7 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+﻿<Project>
 
-  <Sdk Name="Microsoft.Build.CentralPackageVersions" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" />
+  <Import Project="Sdk.props" Sdk="Microsoft.Build.CentralPackageVersions" />
 
   <PropertyGroup>
     <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
@@ -44,27 +45,35 @@
   </ItemGroup>
 
   <ItemGroup>
-    <SdkVersionProps Include="$(SdkVersionPropsPath)" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="../CastXML/**/*" PackagePath="tools/CastXML/%(RecursiveDir)%(FileName)%(Extension)" />
     <Content Include="GetSnPath.*.props" PackagePath="Sdk" />
     <Content Include="SharpGenMapping.xaml" PackagePath="build" />
-    <Content Include="@(SdkVersionProps)" PackagePath="Sdk" />
     <Content Include="Sdk.props" PackagePath="Sdk" />
     <Content Include="Sdk.targets" PackagePath="Sdk" />
+    <Content Include="SharpGenTools.Sdk.props" PackagePath="build;buildMultiTargeting" />
+    <Content Include="SharpGenTools.Sdk.targets" PackagePath="build;buildMultiTargeting" />
   </ItemGroup>
 
   <Target Name="SharpGenWriteVersionProps" BeforeTargets="_GetPackageFiles;GenerateNuspec" Outputs="@(SdkVersionProps)">
+    <PropertyGroup>
+      <SdkVersionPropsPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'Sdk.Version.props'))</SdkVersionPropsPath>
+    </PropertyGroup>
+
     <ItemGroup>
+      <Content Include="$(SdkVersionPropsPath)" PackagePath="Sdk" />
       <_VersionPropsLine Include="&lt;Project&gt;" />
       <_VersionPropsLine Include="&lt;PropertyGroup&gt;" />
       <_VersionPropsLine Include="&lt;SharpGenSdkVersion Condition=&quot;'%24(SharpGenSdkVersion)'==''&quot;&gt;$(PackageVersion)&lt;/SharpGenSdkVersion&gt;" />
       <_VersionPropsLine Include="&lt;/PropertyGroup&gt;" />
       <_VersionPropsLine Include="&lt;/Project&gt;" />
     </ItemGroup>
-    <WriteLinesToFile File="@(SdkVersionProps)" WriteOnlyWhenDifferent="true" Overwrite="true" Lines="@(_VersionPropsLine)" />
+
+    <WriteLinesToFile File="$(SdkVersionPropsPath)" WriteOnlyWhenDifferent="true" Overwrite="true" Lines="@(_VersionPropsLine)" />
   </Target>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.Build.CentralPackageVersions" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" />
+
+  <Target Name ="_GetFrameworkAssemblyReferences" DependsOnTargets="ResolveReferences" Returns="@(TfmSpecificFrameworkAssemblyReferences)" />
 
 </Project>

@@ -325,12 +325,17 @@
   <Target Name="IncludeSharpGenExtensionPackageReferences"
           BeforeTargets="_CheckForInvalidConfigurationAndPlatform;CollectPackageReferences"
           Condition="'@(SharpGenExtensionPackage)' != ''">
-    <ItemGroup>
+    <ItemGroup Condition="'$(SharpGenSdkUsedAsPackageReference)' != 'true'">
       <PackageReference Include="@(SharpGenExtensionPackage)"
                         Version="%(SharpGenExtensionPackage.Version)"
                         IsImplicitlyDefined="true"
                         PrivateAssets="All" />
     </ItemGroup>
+
+    <Error Text="SharpGenExtensionPackage only works when SharpGenTools is used as a MSBuild SDK."
+           File="$(MSBuildProjectFullPath)"
+           Code="SD0002"
+           Condition="'$(SharpGenSdkUsedAsPackageReference)' == 'true' and '$(SharpGenDisableSharpGenExtensionPackageForPackageReferenceSdkError)' != 'true'" />
   </Target>
 
   <!--
@@ -346,17 +351,24 @@
     <ItemGroup>
       <_ExistingSharpGenRuntimePackageReference Include="@(PackageReference)"
                                                 Condition="'%(PackageReference.Identity)' == 'SharpGen.Runtime'" />
+    </ItemGroup>
 
+    <ItemGroup Condition="'$(SharpGenSdkUsedAsPackageReference)' != 'true'">
       <PackageReference Include="SharpGen.Runtime"
                         Version="$(SharpGenSdkVersion)"
                         IsImplicitlyDefined="true"
                         Condition="'@(_ExistingSharpGenRuntimePackageReference)' == ''" />
-
-      <Warning Text="SharpGen.Runtime is implicitly referenced by the SharpGenTools MSBuild SDK. Avoid referencing it explicitly to prevent version mismatch issues."
-               File="$(MSBuildProjectFullPath)"
-               Code="SD0001"
-               Condition="'$(SharpGenDisableExistingRuntimePackageReferenceWarning)' != 'true' and '@(_ExistingSharpGenRuntimePackageReference)' != ''" />
     </ItemGroup>
+
+    <Warning Text="SharpGen.Runtime is implicitly referenced by the SharpGenTools MSBuild SDK. Avoid referencing it explicitly to prevent version mismatch issues."
+             File="$(MSBuildProjectFullPath)"
+             Code="SD0001"
+             Condition="'$(SharpGenDisableExistingRuntimePackageReferenceWarning)' != 'true' and '@(_ExistingSharpGenRuntimePackageReference)' != '' and '$(SharpGenSdkUsedAsPackageReference)' != 'true'" />
+
+    <Error Text="SharpGen.Runtime is implicitly referenced only when SharpGenTools is used as a MSBuild SDK. Set SharpGenIncludeRuntimePackageReference to false, add SharpGen.Runtime PackageReference, or switch to importing SharpGenTools as a MSBuild SDK."
+           File="$(MSBuildProjectFullPath)"
+           Code="SD0003"
+           Condition="'$(SharpGenSdkUsedAsPackageReference)' == 'true' and '@(_ExistingSharpGenRuntimePackageReference)' == ''" />
   </Target>
 
 </Project>

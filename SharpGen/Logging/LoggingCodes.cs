@@ -68,5 +68,11 @@ namespace SharpGen.Logging
         // Used by SharpGen MSBuild SDK targets file
         [SuppressMessage("ReSharper", "UnusedMember.Global")]
         public const string ExplicitRuntimePackageReference = "SD0001";
+
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        public const string SharpGenExtensionPackageForPackageReferenceSdk = "SD0002";
+
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        public const string MissingExplicitRuntimePackageReferenceForPackageReferenceSdk = "SD0003";
     }
 }

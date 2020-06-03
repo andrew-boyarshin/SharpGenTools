@@ -28,4 +28,8 @@
     <ProjectReference Include="..\SharpGen\SharpGen.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="SharpGen.Extension.MicrosoftDocs.targets" PackagePath="build;buildMultiTargeting" />
+  </ItemGroup>
+
 </Project>

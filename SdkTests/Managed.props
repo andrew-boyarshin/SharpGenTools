@@ -10,10 +10,10 @@
         <SharpGenWaitForDebuggerAttach>false</SharpGenWaitForDebuggerAttach>
     </PropertyGroup>
 
-    <!-- https://github.com/microsoft/msbuild/issues/5349 -->
-    <Import Project="Sdk.props" Sdk="SharpGenTools.Sdk" Version="42.42.42" />
-
     <ItemGroup>
+        <PackageReference Include="SharpGenTools.Sdk" Version="$(LocalPackageVersion)" IsImplicitlyDefined="true" PrivateAssets="All" />
+        <PackageReference Include="SharpGen.Runtime" Version="$(LocalPackageVersion)" IsImplicitlyDefined="true" />
+
         <PackageReference Include="coverlet.msbuild" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="xunit" />

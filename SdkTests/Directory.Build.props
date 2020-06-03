@@ -10,7 +10,7 @@
   <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props" />
 
   <PropertyGroup>
-    <LocalPackageVersion>$(PackageVersion)</LocalPackageVersion>
+    <LocalPackageVersion>$(Version)</LocalPackageVersion>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)Managed.props" Condition="'$(MSBuildProjectExtension)' == '.csproj'" />

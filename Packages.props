@@ -3,7 +3,7 @@
   <ItemGroup>
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="3.1.4" />
     <PackageReference Update="Mono.Cecil" Version="0.11.2" />
-    <PackageReference Update="coverlet.msbuild" Version="2.8.1">
+    <PackageReference Update="coverlet.msbuild" Version="2.9.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -11,9 +11,9 @@
     <PackageReference Update="FakeItEasy.Analyzer.CSharp" Version="6.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.6.1" />
     <PackageReference Update="xunit" Version="2.4.1" />
-    <PackageReference Update="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.4.2" />
     <PackageReference Update="Xunit.SkippableFact" Version="1.4.8" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="3.6.0-4.final" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="3.7.0-1.final" />
     <PackageReference Update="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Update="Microsoft.Bcl.HashCode" Version="1.1.0" />
     <PackageReference Update="System.Diagnostics.Process" Version="4.3.0" />
@@ -29,15 +29,15 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Update="System.Memory" Version="4.5.4" />
-    <PackageReference Update="System.Runtime.CompilerServices.Unsafe" Version="5.0.0-preview.3.20214.6" />
+    <PackageReference Update="System.Runtime.CompilerServices.Unsafe" Version="5.0.0-preview.4.20251.6" />
     <PackageReference Update="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
     <PackageReference Update="Microsoft.Build.Utilities.Core" Version="15.3.409" />
-    <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.7.0-2.20264.2">
+    <PackageReference Update="Microsoft.Net.Compilers.Toolset" Version="3.7.0-3.20303.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Update="System.Text.Json" Version="5.0.0-preview.3.20214.6" />
-    <PackageReference Update="AngleSharp" Version="1.0.0-alpha-822" />
+    <PackageReference Update="System.Text.Json" Version="5.0.0-preview.4.20251.6" />
+    <PackageReference Update="AngleSharp" Version="1.0.0-alpha-825" />
     <PackageReference Update="AngleSharp.Js" Version="0.14.0" />
     <PackageReference Update="Markdig" Version="0.20.0" />
     <PackageReference Update="System.Net.Http" Version="4.3.4" />

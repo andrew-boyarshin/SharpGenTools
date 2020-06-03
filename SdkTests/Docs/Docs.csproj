@@ -6,8 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <SharpGenExtensionPackage Include="SharpGen.Extension.MicrosoftDocs" Version="$(LocalPackageVersion)" />
+        <PackageReference Include="SharpGen.Extension.MicrosoftDocs" Version="$(LocalPackageVersion)" IsImplicitlyDefined="true" PrivateAssets="All" />
+
+        <!-- for IUnknown -->
         <PackageReference Include="SharpGen.Runtime.COM" VersionOverride="1.2.0" />
+
+        <PackageReference Include="Xunit.SkippableFact" />
     </ItemGroup>
 
 </Project>

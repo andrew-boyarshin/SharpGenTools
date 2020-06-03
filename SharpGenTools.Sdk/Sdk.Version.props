@@ -1,5 +1,0 @@
-<Project>
-<PropertyGroup>
-<SharpGenSdkVersion Condition="'$(SharpGenSdkVersion)'==''">42.42.42</SharpGenSdkVersion>
-</PropertyGroup>
-</Project>
